@@ -17,6 +17,7 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.signals import user_logged_in, user_logged_out
+import settings
 
 from game.models import Game, Player
 

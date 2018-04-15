@@ -13,5 +13,32 @@ from game.models import Player, Game
 
 class HomePageView(LoginRequiredMixin, TemplateView):
     def get(self, request, **kwargs):
+        return render(request, 'index.html', {'ready': False})
 
-        return render(request, 'index.html', context=None)
+@login_required
+def process_ready_click(request):
+    print "Processing ready";
+    game = Game.get_current_game()
+    players = game.get_current_game_players()
+    player = game.get_current_player(request.user.username)
+    if player is not None:
+        player.is_ready = True
+        player.save()
+
+    if(all(players.values_list('is_ready'))):
+        print "Start game"
+
+    # TODO: Display how many players are logged in/ready/not ready
+    # This is definitely NOT a priority though
+
+    return render(request, 'index.html', {'ready': True})
+
+@login_required
+def process_unready_click(request):
+    print "Processing unready";
+    player = Game.get_current_game().get_current_player(request.user.username)
+    if player is not None:
+        player.is_ready = False
+        player.save()
+
+    return render(request, 'index.html', {'ready': False})

@@ -16,11 +16,25 @@ class Game(models.Model):
         # do something with the book
         return game
 
+    @classmethod
+    def get_current_game(cls):
+        return Game.objects.order_by('-id')[:1].get()
+
     def __str__(self):
         return str(self.id)
 
+    def get_current_game_players(self):
+        return Game.get_current_game().players.all()
+
+    def get_current_player(self, username):
+        try:
+            return self.get_current_game_players().get(username=username)
+        except Player.DoesNotExist:
+            return None
+
 class Player(models.Model):
     username = models.CharField(max_length=255, blank=True)
+    is_ready = models.BooleanField(default=False)
 
     @classmethod
     def create(cls, username):

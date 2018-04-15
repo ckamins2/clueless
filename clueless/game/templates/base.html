@@ -2,11 +2,18 @@
 
 <!DOCTYPE html>
 <html>
-  <head>
-      <title>
-    {% block title %}My Project{% endblock %}
-  </title>
-  </head>
+    <head>
+        <title>
+            {% block title %}Team #1 Clueless{% endblock %}
+        </title>
+        {% block permenent_links %}
+          <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        {% endblock permenent_links %}
+        <script>
+          {% block scripts %}
+          {% endblock %}
+        </script>
+    </head>
 <body>
 {% block content %}{% endblock %}
 </body>
