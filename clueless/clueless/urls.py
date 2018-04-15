@@ -15,7 +15,45 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+
+from game.models import Game, Player
+
 urlpatterns = [
+    url(r'^login/$', auth_views.login, name='login'),
+    url(r'^logout/$', auth_views.logout, {'next_page': 'login'}, name='logout'),
     url(r'^', include('game.urls')),
     url(r'^admin/', admin.site.urls),
 ]
+
+game = Game.create()
+game.save()
+
+
+def player_login(sender, user, request, **kwargs):
+    print "Logged in!"
+    print request.user.username
+    player = Player.create(request.user.username)
+    player.save()
+    game = Game.objects.order_by('-id')[:1].get()
+
+    game.players.add(player)
+    game.save()
+
+    print game.players.all()
+
+def player_logout(sender, user, request, **kwargs):
+    print "Logged out!"
+    print request.user.username
+    game = Game.objects.order_by('-id')[:1].get()
+    try:
+        player = game.players.all().get(username=request.user.username)
+        player.delete()
+    except Player.DoesNotExist:
+        print 'This got weird'
+
+    print game.players.all()
+
+user_logged_in.connect(player_login)
+user_logged_out.connect(player_logout)
