@@ -1,0 +1,7 @@
+<select>
+  {% if available_characters %}
+    {% for character in available_characters %}
+      <option value={{character.name}}>{{character.name}}</option>
+    {% endfor %}
+  {% endif %}
+</select>

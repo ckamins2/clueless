@@ -9,15 +9,23 @@
       </title>
       {% block scripts %}
         function ready_func() {
+          clearInterval(refreshIntervalId);
           $('#ready_button').html('').load(
               "{% url 'ready' %}"
           );
         }
         function unready_func() {
+          clearInterval(refreshIntervalId);
           $('#ready_button').html('').load(
               "{% url 'unready' %}"
           );
         }
+
+        refreshIntervalId = setInterval(function(){
+          $('#available_characters').html('').load(
+              "{% url 'check_available_characters' %}"
+          );
+        }, 10000);
 
       {% endblock %}
   </head>
@@ -25,6 +33,9 @@
   {% block content %}
       <div id=ready_button>
         {% include 'ready_button.html' %}
+      </div>
+      <div id=available_characters>
+        {% include 'available_characters.html' %}
       </div>
   {% endblock %}
 </body>

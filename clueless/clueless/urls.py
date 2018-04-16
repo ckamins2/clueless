@@ -28,8 +28,9 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
 ]
 
+# Comment this out if you need to wipe database
 game = Game.create()
-game.save()
+#game.initialize_game()
 
 
 def player_login(sender, user, request, **kwargs):
