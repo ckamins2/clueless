@@ -24,12 +24,12 @@ from game.models import Game, Player
 urlpatterns = [
     url(r'^login/$', auth_views.login, name='login'),
     url(r'^logout/$', auth_views.logout, {'next_page': 'login'}, name='logout'),
-    url(r'^', include('game.urls')),
+    url(r'^', include('game.urls', namespace='game')),
     url(r'^admin/', admin.site.urls),
 ]
 
 # Comment this out if you need to wipe database
-game = Game.create()
+#game = Game.create()
 #game.initialize_game()
 
 
@@ -38,24 +38,15 @@ def player_login(sender, user, request, **kwargs):
     print request.user.username
     player = Player.create(request.user.username)
     player.save()
-    game = Game.objects.order_by('-id')[:1].get()
-
-    game.players.add(player)
-    game.save()
-
-    print game.players.all()
 
 def player_logout(sender, user, request, **kwargs):
     print "Logged out!"
     print request.user.username
-    game = Game.objects.order_by('-id')[:1].get()
     try:
-        player = game.players.all().get(username=request.user.username)
+        player = Player.objects.all().filter(username=request.user.username)
         player.delete()
     except Player.DoesNotExist:
         print 'This got weird'
-
-    print game.players.all()
 
 user_logged_in.connect(player_login)
 user_logged_out.connect(player_logout)

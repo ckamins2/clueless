@@ -12,10 +12,14 @@ class Game(models.Model):
     game_map = models.ForeignKey('Map', null=True)
     case_file = models.ManyToManyField('Card')
     characters = models.ManyToManyField('Character')
+    is_active = models.BooleanField(default=True)
+    game_owner = models.ForeignKey('Player', related_name='owner')
 
     @classmethod
-    def create(cls):
+    def create(cls, game_owner):
         game = cls()
+        game.game_owner = game_owner
+        game.is_active = True
         game.save()
         game.createCharacters()
         return game
@@ -65,6 +69,11 @@ class Game(models.Model):
         self.save()
 
     def initialize_game(self):
+        game_map = Map.create()
+        game_map.save()
+        game_map.initialize_locations()
+        self.game_map = game_map
+        self.save()
         cards = self.initialize_cards()
         print "Cards initialized"
         print cards
@@ -72,6 +81,7 @@ class Game(models.Model):
         print "Cards shuffled"
         cards = self.get_case_file(cards)
         self.pass_out_cards(cards)
+        print self.case_file
 
 
     def initialize_cards(self):
@@ -152,13 +162,7 @@ class Game(models.Model):
         return cards
 
     def shuffle_cards(self, cards):
-
-        print cards
-
         shuffle(cards)
-
-        print cards
-
         return cards
 
     def get_case_file(self, cards):
@@ -187,9 +191,6 @@ class Game(models.Model):
         cards.remove(haveSuspect)
         cards.remove(haveWeapon)
         cards.remove(haveRoom)
-
-        print cards
-
         self.save()
 
         return cards
@@ -306,6 +307,9 @@ class Character(models.Model):
     player = models.ForeignKey('Player', on_delete=models.CASCADE, null=True)
     curr_location = models.ForeignKey('Location', on_delete=models.CASCADE, null=True)
     selected = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
 
     @classmethod
     def create(cls, name):

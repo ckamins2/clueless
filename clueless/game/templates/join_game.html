@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block scripts %}
+$(document).ready(function(){
+{% for game in games %}
+  $("#game_{{game.id}}").click(function(){
+    $('#available_characters').html('').load(
+      "{% url 'game:get_available_characters' game.id %}"
+    );
+  });
+{% endfor %}
+});
+
+{% endblock %}
+
+{% block content %}
+
+{% for game in games %}
+  <p id="game_{{game.id}}">{{game.id}}</p>
+{% endfor %}
+
+<div id="available_characters">
+  {% if characters %}
+  {% include 'available_characters.html' %}
+  {% endif %}
+</div>
+
+{% endblock content %}

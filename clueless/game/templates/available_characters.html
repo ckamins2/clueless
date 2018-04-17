@@ -1,7 +1,10 @@
-<select>
-  {% if available_characters %}
-    {% for character in available_characters %}
-      <option value={{character.name}}>{{character.name}}</option>
-    {% endfor %}
-  {% endif %}
-</select>
+<form action="{% url 'game:join_target_game' game.id %}" method="post" id="character_form">
+  {% csrf_token %}
+  <select form="character_form" name="character">
+  {% for character in characters %}
+    <option value='{{character.name}}'>{{character.name}}</option>
+  {% endfor %}
+  </select>
+<input type="submit" value="Join game"/>
+
+<button

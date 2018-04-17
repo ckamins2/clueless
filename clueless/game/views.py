@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.generic import TemplateView
 
@@ -10,59 +10,83 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import login, logout
 
 from game.models import Player, Game, Map
+from game.forms.create_game_form import CharacterForm
 
 class HomePageView(LoginRequiredMixin, TemplateView):
     def get(self, request, **kwargs):
-        characters = Game.get_current_game().get_characters()
-        return render(request, 'index.html', {'ready': False, 'available_characters': characters})
+        all_games = Game.objects.all()
+        player = Player.objects.filter(username=request.user.username)
+        is_owner = len(all_games.filter(game_owner=player)) > 0
+        in_game = len(all_games.filter(players__in=player)) > 0
+        game_pk = None
+        print is_owner
+        print in_game
+
+        if is_owner:
+            game_pk = all_games.filter(game_owner=player).get().id
+        return render(request, 'index.html', {'in_game': in_game, 'is_owner': is_owner, 'game_pk': game_pk})
 
 @login_required
-def process_ready_click(request):
-    print "Processing ready";
-    game = Game.get_current_game()
-    players = game.get_current_game_players()
-    player = game.get_current_player(request.user.username)
-    if player is not None:
-        player.is_ready = True
-        player.save()
+def create_game(request):
+    create_game_form = CharacterForm()
+    return render(request, 'create_game.html', {'create_game_form': create_game_form})
 
-        print players.values_list('is_ready', flat=True)
+@login_required
+def gen_new_game(request):
+    if request.method == 'POST':
+        data = request.POST
+        print data.get('character_id')
+        player = Player.objects.filter(username=request.user.username).get()
+        game = Game.create(player)
+        character = game.characters.filter(name=data.get('character_name'))
 
-    if(all(players.values_list('is_ready', flat=True))):
-        print "Start game"
-        game_map = Map.create()
-        game_map.save()
-        game_map.initialize_locations()
-        print game_map.locations.all()
-        game.game_map = game_map
+        character = character.get()
+        character.player = player;
+        character.save()
+
+        game.players.add(player)
         game.save()
-        game.initialize_game()
+        print character
 
-        return render(request, 'game_page.html', {'ready': True})
-
-
-
-
-    # TODO: Display how many players are logged in/ready/not ready
-    # This is definitely NOT a priority though
-
-    return render(request, 'ready_button.html', {'ready': True})
+    return redirect('game:home')
 
 @login_required
-def process_unready_click(request):
-    print "Processing unready";
-    player = Game.get_current_game().get_current_player(request.user.username)
-    characters = Game.get_current_game().get_characters()
-    if player is not None:
-        player.is_ready = False
-        player.save()
+def start_game(request, game_pk):
+    print game_pk
+    game = Game.objects.get(pk=game_pk)
+    game.initialize_game()
 
-    return render(request, 'ready_button.html', {'ready': False})
+    return render(request, "game.html", {})
 
 @login_required
+def join_game(request):
+    games = Game.objects.filter(is_active=True)
+    print games
 
-def check_available_characters(request):
-    characters = Game.get_current_game().get_characters()
-    player = Game.get_current_game().get_current_player(request.user.username)
+    return render(request, "join_game.html", {'games': games})
 
-    return render(request, 'available_characters.html', {'available_characters': characters})
+@login_required
+def join_target_game(request, game_pk):
+
+    if request.method == 'POST':
+        data = request.POST
+
+        game = Game.objects.get(pk=game_pk)
+        player = Player.objects.filter(username=request.user.username).get()
+        character = game.characters.get(name=data.get('character'))
+
+        character.player = player
+        character.save()
+
+        game.players.add(player)
+
+        game.save()
+
+        print character
+
+    return redirect('game:home')
+
+def get_available_characters(request, game_pk):
+    game = Game.objects.get(pk=game_pk)
+    characters = game.characters.filter(player=None)
+    return render(request, "available_characters.html", {'game': game, 'characters': characters})

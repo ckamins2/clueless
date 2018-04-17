@@ -1,0 +1,9 @@
+{% block content %}
+
+<form action="{% url 'game:gen_new_game' %}" method="post">
+  {% csrf_token %}
+  {{ create_game_form.as_p }}
+  <input type="submit" value="Create game"/>
+</form>
+
+{% endblock content %}

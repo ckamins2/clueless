@@ -8,35 +8,29 @@
         {% block title %}Clueless{% endblock %}
       </title>
       {% block scripts %}
-        function ready_func() {
-          clearInterval(refreshIntervalId);
-          $('#ready_button').html('').load(
-              "{% url 'ready' %}"
-          );
-        }
-        function unready_func() {
-          clearInterval(refreshIntervalId);
-          $('#ready_button').html('').load(
-              "{% url 'unready' %}"
-          );
-        }
-
-        refreshIntervalId = setInterval(function(){
-          $('#available_characters').html('').load(
-              "{% url 'check_available_characters' %}"
-          );
-        }, 10000);
 
       {% endblock %}
   </head>
 <body>
   {% block content %}
-      <div id=ready_button>
-        {% include 'ready_button.html' %}
+      {% if in_game %}
+      <div id="waiting_game">
+        <p>Waiting for Start</p>
       </div>
-      <div id=available_characters>
-        {% include 'available_characters.html' %}
+        {% if is_owner %}
+        <div id="start_game">
+          <p><a href="/start_game/{{game_pk}}">Start Game</a></p>
+        </div>
+        {% endif %}
+      {% else %}
+      <div id="create_game">
+        <p><a href="/create_game/">Create New Game</a></p>
       </div>
+      <div id="join_game">
+        <p><a href="/join_game/">Join Game</a></p>
+      </div>
+      {% endif %}
+
   {% endblock %}
 </body>
 </html>
