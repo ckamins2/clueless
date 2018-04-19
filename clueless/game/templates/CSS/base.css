@@ -1,7 +1,7 @@
 body {
     font: small 'Lucida Grande', Verdana, Arial, sans-serif;
 	/*add image as stretched background*/
-	background-image: url("base.jpg");
+	background-image: url("/clueless/clueless/static/images/base.jpg");
 	background-size: 100% 100%;
 	background-repeat: no-repeat;
 	background-position: right top;
