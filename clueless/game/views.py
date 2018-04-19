@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.generic import TemplateView
+import json
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -24,6 +25,8 @@ class HomePageView(LoginRequiredMixin, TemplateView):
 
         if is_owner:
             game_pk = all_games.filter(game_owner=player).get().id
+        else:
+            game_pk = player.get().get_current_game().id if player.get().get_current_game() != None else 0
         return render(request, 'index.html', {'in_game': in_game, 'is_owner': is_owner, 'game_pk': game_pk})
 
 @login_required
@@ -52,15 +55,16 @@ def gen_new_game(request):
 
 @login_required
 def start_game(request, game_pk):
-    print game_pk
+    player = Player.objects.filter(username=request.user.username).get()
     game = Game.objects.get(pk=game_pk)
-    game.initialize_game()
+    if(game.game_owner == player and game.game_state == 1):
+        game.initialize_game()
 
     return render(request, "game.html", {})
 
 @login_required
 def join_game(request):
-    games = Game.objects.filter(is_active=True)
+    games = Game.objects.filter(game_state=1)
     print games
 
     return render(request, "join_game.html", {'games': games})
@@ -90,3 +94,12 @@ def get_available_characters(request, game_pk):
     game = Game.objects.get(pk=game_pk)
     characters = game.characters.filter(player=None)
     return render(request, "available_characters.html", {'game': game, 'characters': characters})
+
+
+@login_required
+def update_home_page(request):
+    player = Player.objects.filter(username=request.user.username).get()
+    game = player.get_current_game()
+    data_to_send = {'game_state': player.check_current_game_state(), 'game_id': game.id if game != None else 0}
+    data = json.dumps(data_to_send)
+    return HttpResponse(data, content_type='application/json')

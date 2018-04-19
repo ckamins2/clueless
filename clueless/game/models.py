@@ -7,19 +7,25 @@ from random import shuffle
 
 # Create your models here.
 
+game_state = {
+    1: 'created',
+    2: 'started',
+    3: 'finished',
+}
+
 class Game(models.Model):
     players = models.ManyToManyField('Player')
     game_map = models.ForeignKey('Map', null=True)
     case_file = models.ManyToManyField('Card')
     characters = models.ManyToManyField('Character')
-    is_active = models.BooleanField(default=True)
+    game_state = models.IntegerField(default=True)
     game_owner = models.ForeignKey('Player', related_name='owner')
 
     @classmethod
     def create(cls, game_owner):
         game = cls()
         game.game_owner = game_owner
-        game.is_active = True
+        game.game_state = 1
         game.save()
         game.createCharacters()
         return game
@@ -81,7 +87,9 @@ class Game(models.Model):
         print "Cards shuffled"
         cards = self.get_case_file(cards)
         self.pass_out_cards(cards)
-        print self.case_file
+        self.game_state = 2
+        print self.case_file.all()
+        self.save()
 
 
     def initialize_cards(self):
@@ -230,6 +238,20 @@ class Player(models.Model):
     def setHand(cards):
         self.hand = cards
         self.save()
+
+    def check_current_game_state(self):
+        try:
+            game = Game.objects.filter(players__in=[self]).get()
+            return game.game_state
+        except Game.DoesNotExist:
+            return 0
+
+    def get_current_game(self):
+        try:
+            return Game.objects.filter(players__in=[self]).get()
+        except Game.DoesNotExist:
+            return None
+
 
 from abc import ABCMeta, abstractmethod
 

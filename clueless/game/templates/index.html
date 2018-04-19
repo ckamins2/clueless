@@ -8,7 +8,21 @@
         {% block title %}Clueless{% endblock %}
       </title>
       {% block scripts %}
-
+      $(document).ready(function(){
+          setInterval(function(){
+            $.ajax({
+              url: "{% url 'game:update_home_page' %}",
+              method: "GET",
+              success: function(data){
+                console.log(data);
+                if(data.game_state == 2)
+                {
+                  window.location.href = "{% url 'game:start_game' game_pk %}";
+                }
+              }
+            });
+          }, 1000);
+      });
       {% endblock %}
   </head>
 <body>

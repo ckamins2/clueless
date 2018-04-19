@@ -10,4 +10,5 @@ urlpatterns = [
     url(r'^join_game/', views.join_game, name='join_game'),
     url(r'^join_target_game/(?P<game_pk>[0-9]+)/$', views.join_target_game, name='join_target_game'),
     url(r'^get_available_characters/(?P<game_pk>[0-9]+)/$', views.get_available_characters, name='get_available_characters'),
+    url(r'^update_home_page/', views.update_home_page, name='update_home_page'),
 ]
