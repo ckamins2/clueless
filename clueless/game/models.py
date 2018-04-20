@@ -276,15 +276,33 @@ class Game(models.Model):
 
         col_mustard.curr_location = mustard_start
         mustard_start.characters.add(col_mustard)
-
         col_mustard.save()
         mustard_start.save()
 
         miss_scarlet.curr_location = scarlet_start
         scarlet_start.characters.add(miss_scarlet)
-
         miss_scarlet.save()
         scarlet_start.save()
+
+        prof_plum.curr_location = plum_start
+        plum_start.characters.add(prof_plum)
+        prof_plum.save()
+        plum_start.save()
+
+        mr_green.curr_location = green_start
+        green_start.characters.add(mr_green)
+        mr_green.save()
+        green_start.save()
+
+        mrs_white.curr_location = white_start
+        white_start.characters.add(mrs_white)
+        mrs_white.save()
+        white_start.save()
+
+        mrs_peacock.curr_location = peacock_start
+        peacock_start.characters.add(mrs_peacock)
+        mrs_peacock.save()
+        peacock_start.save()
 
 
 class Player(models.Model):
