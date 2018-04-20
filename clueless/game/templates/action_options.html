@@ -1,0 +1,9 @@
+<div class=container id=active_player_options>
+  <ul style="list-style-type:none">
+    {% for option in valid_options %}
+      <li>
+        <button id={{option.id}}>{{option.text}}</button>
+      </li>
+    {% endfor %}
+  </ul>
+</div>

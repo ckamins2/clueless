@@ -8,12 +8,68 @@
         {% block title %}Clueless{% endblock %}
       </title>
       {% block scripts %}
+      $(document).ready(function(){
+          setInterval(function(){
+            $.ajax({
+              type: "get",
+              url: "{% url 'game:update_player_options' %}",
+              method: "GET",
+              success: function(response, status, xhr){
+                var ct = xhr.getResponseHeader("content-type") || "";
+                if (ct.indexOf('html') > -1) {
+                  console.log("Updated");
+                  $('#player_options').html(response);
+                }
+                if (ct.indexOf('json') > -1) {
+                  alert("no change");
+                }
+              }
+            });
+          }, 1000);
 
+          $(document).on("click", "#pass-turn", function(event) {
+            $.ajax({
+              type: "get",
+              url: "{% url 'game:pass_turn' %}",
+              method: "GET",
+              success: function(response, status, xhr){
+              }
+            });
+          });
+
+          $(document).on("click", "#get-valid-moves", function(event) {
+            $.ajax({
+              type: "get",
+              url: "{% url 'game:get_valid_moves' %}",
+              method: "GET",
+              success: function(response, status, xhr){
+                $('#player_options').html(response);
+              }
+            });
+          });
+
+          $(document).on("click", "#back", function(event) {
+            $.ajax({
+              type: "get",
+              url: "{% url 'game:back' %}",
+              method: "GET",
+              success: function(response, status, xhr){
+                $('#player_options').html(response);
+              }
+            });
+          });
+      });
       {% endblock %}
   </head>
 <body>
   {% block content %}
       {% include 'game_board.html' %}
+      {% include 'player_hand.html' %}
+      <div class=container>
+        <h2>Player Actions</h2>
+        <div id=player_options>
+        </div>
+      </div>
   {% endblock %}
 </body>
 </html>

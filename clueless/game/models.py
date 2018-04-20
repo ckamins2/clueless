@@ -5,6 +5,8 @@ from django.db import models
 
 from random import shuffle
 
+from game import *
+
 # Create your models here.
 
 game_state = {
@@ -20,6 +22,8 @@ class Game(models.Model):
     characters = models.ManyToManyField('Character')
     game_state = models.IntegerField(default=True)
     game_owner = models.ForeignKey('Player', related_name='owner')
+
+    player_taking_turn = models.ForeignKey('Player', related_name='player_taking_turn', null=True)
 
     @classmethod
     def create(cls, game_owner):
@@ -89,6 +93,12 @@ class Game(models.Model):
         self.pass_out_cards(cards)
         self.game_state = 2
         print self.case_file.all()
+        self.player_taking_turn = self.players.all().first()
+        self.player_taking_turn.make_active_player()
+        self.player_taking_turn.set_turn_state(SELECTING_ACTION)
+
+        self.add_characters_to_map()
+
         self.save()
 
 
@@ -219,12 +229,72 @@ class Game(models.Model):
             print player
             print player.hand.all()
 
+    def pass_turn(self, curr_player):
+        player_list = list(self.players.all())
+        print player_list
+        print len(player_list)
+
+        curr_player_idx = 0
+
+        for x in range(0, len(player_list)):
+            if(curr_player == player_list[x]):
+                curr_player_idx = x
+
+        next_player = player_list[curr_player_idx+1 if curr_player_idx != len(player_list) - 1 else 0]
+
+        curr_player.make_not_active_player()
+        # Just set this to default action
+        curr_player.set_turn_state(SELECTING_ACTION)
+
+        next_player.make_active_player()
+        next_player.set_turn_state(SELECTING_ACTION)
+
+    def get_player_character(self, player):
+        character = self.characters.filter(player__in=[player]).get()
+        return character
+
+    def add_characters_to_map(self):
+
+        locations = self.game_map.locations.all()
+        characters = self.characters.all()
+
+        print characters
+
+        scarlet_start = locations.get(name='scarlet-start')
+        plum_start = locations.get(name='plum_start')
+        mustard_start = locations.get(name='mustard_start')
+        peacock_start = locations.get(name='peacock_start')
+        green_start = locations.get(name='green_start')
+        white_start = locations.get(name='white_start')
+
+        col_mustard = characters.get(name='Colonel Mustard')
+        miss_scarlet = characters.get(name='Miss Scarlet')
+        prof_plum = characters.get(name='Professor Plum')
+        mr_green = characters.get(name='Mr. Green')
+        mrs_white = characters.get(name='Mrs. White')
+        mrs_peacock = characters.get(name='Mrs. Peacock')
+
+        col_mustard.curr_location = mustard_start
+        mustard_start.characters.add(col_mustard)
+
+        col_mustard.save()
+        mustard_start.save()
+
+        miss_scarlet.curr_location = scarlet_start
+        scarlet_start.characters.add(miss_scarlet)
+
+        miss_scarlet.save()
+        scarlet_start.save()
 
 
 class Player(models.Model):
     username = models.CharField(max_length=255, blank=True)
     is_ready = models.BooleanField(default=False)
     hand = models.ManyToManyField('Card')
+    is_active = models.BooleanField(default=False)
+    turn_state = models.IntegerField(default=1)
+    can_move = models.BooleanField(default=True)
+    can_suggest = models.BooleanField(default=True)
 
     @classmethod
     def create(cls, username):
@@ -235,9 +305,15 @@ class Player(models.Model):
     def __str__(self):
         return str(self.username)
 
-    def setHand(cards):
+    def setHand(self, cards):
         self.hand = cards
         self.save()
+
+    def get_hand(self):
+        return self.hand.all()
+
+    def get_character(self):
+        return self.character.get()
 
     def check_current_game_state(self):
         try:
@@ -252,6 +328,21 @@ class Player(models.Model):
         except Game.DoesNotExist:
             return None
 
+    def make_active_player(self):
+        self.is_active = True
+        self.save()
+
+    def make_not_active_player(self):
+        self.is_active = False
+        self.save()
+
+    def set_turn_state(self, state):
+        self.turn_state = state
+        self.save()
+
+    def get_valid_moves(self):
+        character = self.get_current_game().get_player_character(self)
+        return character.get_valid_moves()
 
 from abc import ABCMeta, abstractmethod
 
@@ -268,45 +359,26 @@ class Location(models.Model):
         return self.characters
 
     def add_adjacent_location(self, location, direction):
-        AdjacentLocation.create(curr_loc=self, di=direction, loc=location)
+        adj_loc = AdjacentLocation.create(curr_loc=self, di=direction, loc=location)
+        adj_loc.save()
 
     # Locations and directions must be passed in in corresponding order
     def add_adjacent_locations(self, locations, directions):
         for idx, location in enumerate(locations):
             self.add_adjacent_location(location, directions[idx])
 
-    # def is_valid_move_target(self):
-    #     return (len(self.characters) < self.max_characters)
-#
-#     def get_valid_moves(self):
-#         directions = []
-#         for direction, location in self.adjacent_locations.iter_items():
-#             if(location.is_valid_move_target()):
-#                 directions.append((location, direction))
-#
-#     def add_character(self, character):
-#         self.characters.append(character)
-#
-#     def remove_character(self, character):
-#         self.characters.remove(character)
-#
-#     def is_character_in_room(self, character):
-#         return character in self.characters
-#
-#     def north(self):
-#         return self.adjacent_locations.get('N', None)
-#
-#     def south(self):
-#         return self.adjacent_locations.get('S', None)
-#
-#     def east(self):
-#         return self.adjacent_locations.get('E', None)
-#
-#     def west(self):
-#         return self.adjacent_locations.get('W', None)
-#
-#     def secret(self):
-#         return self.adjacent_locations.get('secret', None)
+    def is_valid_move_target(self):
+        return self.max_characters > len(self.characters.all())
+
+    def get_valid_moves(self):
+        adj_loc_list = list(self.adjacent_locations.all())
+
+        valid_moves = []
+
+        for location in adj_loc_list:
+            if location.is_valid_move_target():
+                valid_moves.append(location.name.replace(' ', '-').lower())
+        return valid_moves
 
 
 class Room(Location):
@@ -335,28 +407,10 @@ class Character(models.Model):
 
     @classmethod
     def create(cls, name):
-      return cls(name=name)
+        return cls(name=name)
 
-    # def __init__(self, name, player, location):
-    #     self.name = name
-    #     self.player = player
-    #     self.location = location
-    #
-    # def __str__(self):
-    #     return self.name
-    #
-    # def get_player(self):
-    #     return self.player
-    #
-    # def get_location(self):
-    #     return self.location
-    #
-    # # This function does NOT check whether the room to be moved to is a
-    # # valid target, that should be checked prior to this call
-    # def move_character(self, new_location):
-    #     self.location.remove_character(self)
-    #     new_location.add_character(self)
-    #     self.location = new_location
+    def get_valid_moves(self):
+        return self.curr_location.get_valid_moves()
 
 class Card(models.Model):
     name = models.CharField(max_length=32, blank=True)
@@ -392,18 +446,18 @@ class Map(models.Model):
         kitchen = Room.create(name="Kitchen")
 
         # Initialize hallways
-        study_hall_hallway = Hallway.create("Study - Hall Hallway")
-        hall_lounge_hallway = Hallway.create("Hall - Lounge Hallway")
-        study_library_hallway = Hallway.create("Study - Library Hallway")
-        hall_billiard_room_hallway = Hallway.create("Hall - Billiard Room Hallway")
-        lounge_dining_room_hallway = Hallway.create("Lounge - Dining Room Hallway")
-        library_billiard_room_hallway = Hallway.create("Library - Billiard Room Hallway")
-        billiard_room_dining_room_hallway = Hallway.create("Billiard Room - Dining Room Hallway")
-        library_conservatory_hallway = Hallway.create("Library - Conservatory Hallway")
-        billiard_room_ballroom_hallway = Hallway.create("Billiard Room - Ballroom Hallway")
-        dining_room_kitchen_hallway = Hallway.create("Dining Room - Kitchen Hallway")
-        conservatory_ballroom_hallway = Hallway.create("Conservatory - Ballroom Hallway")
-        ballroom_kitchen_hallway = Hallway.create("Ballroom - Kitchen Hallway")
+        study_hall_hallway = Hallway.create("Study To Hall Hallway")
+        hall_lounge_hallway = Hallway.create("Hall To Lounge Hallway")
+        study_library_hallway = Hallway.create("Study To Library Hallway")
+        hall_billiard_room_hallway = Hallway.create("Hall To Billiard Room Hallway")
+        lounge_dining_room_hallway = Hallway.create("Lounge To Dining Room Hallway")
+        library_billiard_room_hallway = Hallway.create("Library To Billiard Room Hallway")
+        billiard_room_dining_room_hallway = Hallway.create("Billiard Room To Dining Room Hallway")
+        library_conservatory_hallway = Hallway.create("Library To Conservatory Hallway")
+        billiard_room_ballroom_hallway = Hallway.create("Billiard Room To Ballroom Hallway")
+        dining_room_kitchen_hallway = Hallway.create("Dining Room To Kitchen Hallway")
+        conservatory_ballroom_hallway = Hallway.create("Conservatory To Ballroom Hallway")
+        ballroom_kitchen_hallway = Hallway.create("Ballroom To Kitchen Hallway")
 
         # Initialize start rooms
         # TODO: Add characters to these starting rooms
@@ -415,6 +469,35 @@ class Map(models.Model):
         green_start = StartRoom.create('green_start')
         white_start = StartRoom.create('white_start')
 
+        study.save()
+        hall.save()
+        lounge.save()
+        library.save()
+        billiard_room.save()
+        dining_room.save()
+        conservatory.save()
+        ballroom.save()
+        kitchen.save()
+
+        study_hall_hallway.save()
+        hall_lounge_hallway.save()
+        study_library_hallway.save()
+        hall_billiard_room_hallway.save()
+        lounge_dining_room_hallway.save()
+        library_billiard_room_hallway.save()
+        billiard_room_dining_room_hallway.save()
+        library_conservatory_hallway.save()
+        billiard_room_ballroom_hallway.save()
+        dining_room_kitchen_hallway.save()
+        conservatory_ballroom_hallway.save()
+        ballroom_kitchen_hallway.save()
+
+        scarlet_start.save()
+        plum_start.save()
+        mustard_start.save()
+        peacock_start.save()
+        green_start.save()
+        white_start.save()
 
         # Add relationships for all rooms
         study.add_adjacent_locations([study_hall_hallway, study_library_hallway, kitchen], ['E', 'S', 'secret'])
