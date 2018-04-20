@@ -31,7 +31,10 @@
           <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         {% endblock permanent_links %}
 		{% load staticfiles %}
-		<img src="{% static "/clueless/clueless/static/images/base.jpg" %}" alt="base image"/>
+		{
+			background: url({% static "/clueless/clueless/static/images/base.jpg" %}) 50% 0 no-repeat fixed;
+		}
+		<!--><img src="{% static "/clueless/clueless/static/images/base.jpg" %}" alt="base image"/>-->
         <script>
           {% block scripts %}
           {% endblock %}
