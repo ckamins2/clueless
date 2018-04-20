@@ -17,6 +17,8 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.conf.urls.static import static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 import settings
 
 from game.models import Game, Player
@@ -27,6 +29,8 @@ urlpatterns = [
     url(r'^', include('game.urls', namespace='game')),
     url(r'^admin/', admin.site.urls),
 ]
+
+urlpatterns += staticfiles_urlpatterns()
 
 # Comment this out if you need to wipe database
 #game = Game.create()
