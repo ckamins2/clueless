@@ -1,0 +1,9 @@
+*.pyc
+*.egg-info
+env
+lib
+.idea
+*.json
+.DS_Store
+.Python
+db.sqlite3
