@@ -9,27 +9,23 @@ from game import *
 
 # Create your models here.
 
-game_state = {
-    1: 'created',
-    2: 'started',
-    3: 'finished',
-}
-
 class Game(models.Model):
     players = models.ManyToManyField('Player')
     game_map = models.ForeignKey('Map', null=True)
-    case_file = models.ManyToManyField('Card')
+    case_file = models.ManyToManyField('Card', related_name='case_file')
     characters = models.ManyToManyField('Character')
-    game_state = models.IntegerField(default=True)
+    game_state = models.IntegerField(default=0)
     game_owner = models.ForeignKey('Player', related_name='owner')
 
     player_taking_turn = models.ForeignKey('Player', related_name='player_taking_turn', null=True)
+
+    winner = models.ForeignKey('Player', related_name='winner', null=True)
 
     @classmethod
     def create(cls, game_owner):
         game = cls()
         game.game_owner = game_owner
-        game.game_state = 1
+        game.game_state = GAME_STATE_CREATED
         game.save()
         game.createCharacters()
         return game
@@ -53,6 +49,12 @@ class Game(models.Model):
     def get_characters(self):
         print self.characters.all()
         return self.characters.all()
+
+    def get_cards(self):
+        return Card.objects.filter(game=self)
+
+    def get_card(self, name):
+        return Card.objects.get(game=self, name=name)
 
     def createCharacters(self):
         col_mustard = Character.create('Colonel Mustard')
@@ -84,6 +86,8 @@ class Game(models.Model):
         game_map.initialize_locations()
         self.game_map = game_map
         self.save()
+        for player in self.players.all():
+            player.reset()
         cards = self.initialize_cards()
         print "Cards initialized"
         print cards
@@ -91,9 +95,13 @@ class Game(models.Model):
         print "Cards shuffled"
         cards = self.get_case_file(cards)
         self.pass_out_cards(cards)
-        self.game_state = 2
+        self.game_state = GAME_STATE_STARTED
+
         print self.case_file.all()
+
         self.player_taking_turn = self.players.all().first()
+
+        #print player_taking_turn
         self.player_taking_turn.make_active_player()
         self.player_taking_turn.set_turn_state(SELECTING_ACTION)
 
@@ -103,29 +111,29 @@ class Game(models.Model):
 
 
     def initialize_cards(self):
-        col_mustard = Card.create('Colonel Mustard', 'suspect')
-        miss_scarlet = Card.create('Miss Scarlet', 'suspect')
-        prof_plum = Card.create('Professor Plum', 'suspect')
-        mr_green = Card.create('Mr. Green', 'suspect')
-        mrs_white = Card.create('Mrs. White', 'suspect')
-        mrs_peacock = Card.create('Mrs. Peacock', 'suspect')
+        col_mustard = Card.create('Colonel Mustard', 'suspect', self)
+        miss_scarlet = Card.create('Miss Scarlet', 'suspect', self)
+        prof_plum = Card.create('Professor Plum', 'suspect', self)
+        mr_green = Card.create('Mr Green', 'suspect', self)
+        mrs_white = Card.create('Mrs White', 'suspect', self)
+        mrs_peacock = Card.create('Mrs Peacock', 'suspect', self)
 
-        rope = Card.create('Rope', 'weapon')
-        lead_pipe = Card.create('Lead Pipe', 'weapon')
-        knife = Card.create('Knife', 'weapon')
-        wrench = Card.create('Wrench', 'weapon')
-        candlestick = Card.create('Candlestick', 'weapon')
-        revolver = Card.create('Revolver', 'weapon')
+        rope = Card.create('Rope', 'weapon', self)
+        lead_pipe = Card.create('Lead Pipe', 'weapon', self)
+        knife = Card.create('Knife', 'weapon', self)
+        wrench = Card.create('Wrench', 'weapon', self)
+        candlestick = Card.create('Candlestick', 'weapon', self)
+        revolver = Card.create('Revolver', 'weapon', self)
 
-        study = Card.create("Study", 'room')
-        hall = Card.create("Hall", 'room')
-        lounge = Card.create("Lounge", 'room')
-        library = Card.create("Library", 'room')
-        billiard_room = Card.create("Billiard Room", 'room')
-        dining_room = Card.create("Dining Room", 'room')
-        conservatory = Card.create("Conservatory", 'room')
-        ballroom = Card.create("Ballroom", 'room')
-        kitchen = Card.create("Kitchen", 'room')
+        study = Card.create("Study", 'room', self)
+        hall = Card.create("Hall", 'room', self)
+        lounge = Card.create("Lounge", 'room', self)
+        library = Card.create("Library", 'room', self)
+        billiard_room = Card.create("Billiard Room", 'room', self)
+        dining_room = Card.create("Dining Room", 'room', self)
+        conservatory = Card.create("Conservatory", 'room', self)
+        ballroom = Card.create("Ballroom", 'room', self)
+        kitchen = Card.create("Kitchen", 'room', self)
 
         col_mustard.save()
         miss_scarlet.save()
@@ -248,6 +256,7 @@ class Game(models.Model):
 
         next_player.make_active_player()
         next_player.set_turn_state(SELECTING_ACTION)
+        next_player.reset_can_move()
 
     def get_player_character(self, player):
         character = self.characters.filter(player__in=[player]).get()
@@ -257,8 +266,6 @@ class Game(models.Model):
 
         locations = self.game_map.locations.all()
         characters = self.characters.all()
-
-        print characters
 
         scarlet_start = locations.get(name='scarlet-start')
         plum_start = locations.get(name='plum_start')
@@ -304,6 +311,29 @@ class Game(models.Model):
         mrs_peacock.save()
         peacock_start.save()
 
+    def get_map(self):
+        return self.game_map
+
+    def check_accusation(self, accusation):
+        print self.case_file.all()
+        if (accusation.get_suspect() in self.case_file.all() and
+            accusation.get_weapon() in self.case_file.all() and
+            accusation.get_crime_scene() in self.case_file.all()):
+            return True
+        else:
+            return False
+
+    def set_game_state(self, state):
+        self.game_state = state
+        self.save()
+
+    def is_all_eliminated(self):
+        for player in self.players.all():
+            if not player.is_eliminated():
+                return False
+
+        return True
+
 
 class Player(models.Model):
     username = models.CharField(max_length=255, blank=True)
@@ -313,6 +343,7 @@ class Player(models.Model):
     turn_state = models.IntegerField(default=1)
     can_move = models.BooleanField(default=True)
     can_suggest = models.BooleanField(default=True)
+    eliminated = models.BooleanField(default=False)
 
     @classmethod
     def create(cls, username):
@@ -358,9 +389,44 @@ class Player(models.Model):
         self.turn_state = state
         self.save()
 
+    def set_player_moved(self):
+        self.can_move = False
+        self.save()
+
+    def reset_can_move(self):
+        self.can_move = True
+        self.save()
+
+    def set_eliminated(self):
+        self.eliminated = True
+        self.save()
+
+    def is_eliminated(self):
+        return self.eliminated
+
+    def can_player_move(self):
+        return self.can_move
+
     def get_valid_moves(self):
         character = self.get_current_game().get_player_character(self)
         return character.get_valid_moves()
+
+    def move_to_room(self, target_location):
+        character = self.get_current_game().get_player_character(self)
+        print character
+        character.move_to_room(target_location)
+
+    def reset(self):
+        for card in self.hand.all():
+            self.hand.remove(card)
+        self.is_ready = False
+        self.turn_state = SELECTING_ACTION
+        self.can_move = True
+        self.can_suggest = True
+        self.eliminated = False
+        self.is_active = False
+        self.save()
+
 
 from abc import ABCMeta, abstractmethod
 
@@ -398,6 +464,14 @@ class Location(models.Model):
                 valid_moves.append(location.name.replace(' ', '-').lower())
         return valid_moves
 
+    def remove_character(self, character):
+        self.characters.remove(character)
+        self.save()
+
+    def add_character(self, character):
+        self.characters.add(character)
+        self.save()
+
 
 class Room(Location):
     @classmethod
@@ -427,19 +501,34 @@ class Character(models.Model):
     def create(cls, name):
         return cls(name=name)
 
+    def get_location(self):
+        return self.curr_location
+
     def get_valid_moves(self):
         return self.curr_location.get_valid_moves()
+
+    def move_to_room(self, target_location):
+        print self.curr_location
+        print target_location
+        self.curr_location.remove_character(self)
+        target_location.add_character(self)
+        self.curr_location = target_location
+        self.save()
+
+        print self.curr_location
+
 
 class Card(models.Model):
     name = models.CharField(max_length=32, blank=True)
     card_type = models.CharField(max_length=32, blank=True)
+    game = models.ForeignKey('Game', related_name='card_game')
 
     def __str__(self):
         return self.name
 
     @classmethod
-    def create(cls, name, card_type):
-        return cls(name=name, card_type=card_type)
+    def create(cls, name, card_type, game):
+        return cls(name=name, card_type=card_type, game=game)
 
 
 
@@ -449,6 +538,11 @@ class Map(models.Model):
     @classmethod
     def create(cls):
         return cls()
+
+    def get_location(self, name):
+        print name
+
+        return self.locations.get(name=name.replace('-', ' ').title())
 
 
     def initialize_locations(self):
@@ -624,3 +718,44 @@ class AdjacentLocation(models.Model):
     @classmethod
     def create(cls, curr_loc, di, loc):
       return cls(original_location=curr_loc, direction=di, target_location=loc)
+
+
+class Guess(models.Model):
+    game = models.ForeignKey('Game', related_name='accuse_game')
+    player = models.ForeignKey('Player', related_name='accuse_player')
+    suspect = models.ForeignKey('Card', related_name='suspect')
+    weapon = models.ForeignKey('Card', related_name='weapon')
+    crime_scene = models.ForeignKey('Card', related_name='crime_scene')
+
+    def __str__(self):
+        return self.suspect.name + ":" + self.weapon.name + ":" + self.crime_scene.name
+
+    def get_suspect(self):
+        return self.suspect
+
+    def get_weapon(self):
+        return self.weapon
+
+    def get_crime_scene(self):
+        return self.crime_scene
+
+
+class Suggestion(Guess):
+    @classmethod
+    def create(cls, player, suspect_name, weapon_name, room_name):
+      game = player.get_current_game()
+      suggestion = cls(game=game, player=player, suspect=game.get_card(suspect_name.replace('-', ' ').title()),
+            weapon=game.get_card(weapon_name.replace('-', ' ').title()),
+            crime_scene=game.get_card(room_name.replace('-', ' ').title()))
+      suggetion.save()
+      return suggestion
+
+class Accusation(Guess):
+    @classmethod
+    def create(cls, player, suspect_name, weapon_name, room_name):
+      game = player.get_current_game()
+      accusation = cls(game=game, player=player, suspect=game.get_card(suspect_name.replace('-', ' ').title()),
+            weapon=game.get_card(weapon_name.replace('-', ' ').title()),
+            crime_scene=game.get_card(room_name.replace('-', ' ').title()))
+      accusation.save()
+      return accusation

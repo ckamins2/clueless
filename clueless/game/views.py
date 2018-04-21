@@ -10,7 +10,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import login, logout
 
-from game.models import Player, Game, Map
+from game.models import Player, Game, Map, Accusation
 from game.forms.create_game_form import CharacterForm
 from game import *
 
@@ -25,7 +25,7 @@ class HomePageView(LoginRequiredMixin, TemplateView):
         print in_game
 
         if is_owner:
-            game_pk = all_games.filter(game_owner=player).get().id
+            game_pk = all_games.filter(game_owner=player).order_by('-id')[:1].get().id
         else:
             game_pk = player.get().get_current_game().id if player.get().get_current_game() != None else 0
         return render(request, 'index.html', {'in_game': in_game, 'is_owner': is_owner, 'game_pk': game_pk})
@@ -58,6 +58,7 @@ def gen_new_game(request):
 def start_game(request, game_pk):
     player = Player.objects.filter(username=request.user.username).get()
     game = Game.objects.get(pk=game_pk)
+
     if(game.game_owner == player and game.game_state == 1):
         game.initialize_game()
 
@@ -111,18 +112,46 @@ def update_home_page(request):
 def update_player_options(request):
     player = Player.objects.filter(username=request.user.username).get()
 
+    game = player.get_current_game()
+
+    if player.check_current_game_state() == GAME_STATE_FINISHED:
+        if game.winner == None:
+            data_to_send = {'game_state': player.check_current_game_state(), 'game_id': game.id if game != None else 0,
+                        'winner': None}
+        else:
+            data_to_send = {'game_state': player.check_current_game_state(), 'game_id': game.id if game != None else 0,
+                        'winner': game.winner.username}
+        data = json.dumps(data_to_send)
+        game.players.remove(player)
+        player.reset()
+        return HttpResponse(data, content_type='application/json')
+
     if(player.is_active):
         if player.turn_state == SELECTING_ACTION:
             options = []
-            if player.can_move :
+            # Possible options:
+            # 1) Player can move to room and make guess
+            # 2) Player can move to hallways
+            # 3) Player can stay in current room and make guess (ONLY if moved by suggestion)
+            # 4) Player cannot do any of the above and must pass
+
+            if player.can_move and len(player.get_valid_moves()) > 0 and not player.is_eliminated():
                 options.append({'id': GET_VALID_MOVES, 'text': 'Move character'})
-            options.append({'id': 'pass-turn', 'text': 'Pass turn'})
-            return render(request, "action_options.html", {"valid_options": options})
+
+            # Player can always make accusation (on their turn)
+            if not player.is_eliminated():
+                options.append({'id': SELECT_ACCUSATION_CARDS, 'text': 'Make accusation'})
+
+            if player.is_eliminated() or (not player.can_move or len(player.get_valid_moves()) == 0):
+                options.append({'id': 'pass-turn', 'text': 'Pass turn'})
+
+
+            return render(request, "action_options.html", {"valid_options": options, "eliminated": player.is_eliminated()})
         else:
             return HttpResponse({}, content_type='application/json')
 
     else:
-        return render(request, "action_options.html", {"valid_options": []})
+        return render(request, "action_options.html", {"valid_options": [], "eliminated": player.is_eliminated()})
 
 @login_required
 def pass_turn(request):
@@ -144,9 +173,6 @@ def get_valid_moves(request):
         valid_rooms.append({'id': move, 'text': move.replace('-', ' ').title()})
 
     valid_rooms.append({'id': 'back', 'text': 'Back'})
-
-    print valid_moves
-
     player.set_turn_state(MOVING_CHARACTER)
 
     return render(request, 'move_room_options.html', {"valid_rooms": valid_rooms})
@@ -163,3 +189,66 @@ def back_to_options(request):
     player.set_turn_state(SELECTING_ACTION)
 
     return HttpResponse({}, content_type='application/json')
+
+@login_required
+def move_to_room(request):
+    if request.method == 'GET':
+        data = request.GET
+
+        player = Player.objects.filter(username=request.user.username).get()
+
+        location = player.get_current_game().get_map().get_location(data['location'])
+
+        player.move_to_room(location)
+        player.set_player_moved()
+        player.set_turn_state(SELECTING_ACTION)
+
+    return redirect('game:update_player_options')
+
+@login_required
+def select_accusation_cards(request):
+    player = Player.objects.filter(username=request.user.username).get()
+    cards = player.get_current_game().get_cards()
+
+    suspect_list = []
+    weapon_list = []
+    room_list = []
+
+    for card in cards:
+        if card.card_type == 'suspect':
+            suspect_list.append({'name': card.name.replace(' ', '-').lower(), 'type': card.card_type, 'text': card.name})
+        elif card.card_type == 'weapon':
+            weapon_list.append({'name': card.name.replace(' ', '-').lower(), 'type': card.card_type, 'text': card.name})
+        if card.card_type == 'room':
+            room_list.append({'name': card.name.replace(' ', '-').lower(), 'type': card.card_type, 'text': card.name})
+
+    player.set_turn_state(MAKING_ACCUSATION)
+
+    return render(request, 'select_accusation_cards.html', {'suspect_list': suspect_list,
+        'weapon_list': weapon_list, 'room_list': room_list})
+
+@login_required
+def make_accusation(request):
+    if request.method == 'POST':
+        data = request.POST
+
+        player = Player.objects.filter(username=request.user.username).get()
+        game = player.get_current_game()
+        accusation = Accusation.create(player, data['suspect_options'], data['weapon_options'], data['room_options'])
+
+        correct = game.check_accusation(accusation)
+
+        print correct
+
+        if correct:
+            print str(player) + "Wins"
+            game.winner = player
+            game.set_game_state(GAME_STATE_FINISHED)
+        else:
+            player.set_eliminated()
+            if game.is_all_eliminated():
+                game.set_game_state(GAME_STATE_FINISHED)
+
+        player.set_turn_state(SELECTING_ACTION)
+
+        return redirect('game:start_game', game_pk=player.get_current_game().id)

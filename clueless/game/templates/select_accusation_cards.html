@@ -1,0 +1,42 @@
+<div class=container id=accusation_options>
+  <form id=accusation_form action="{% url 'game:make_accusation' %}" method="post">
+      {% csrf_token %}
+    <div class=container>
+      <div class=col-sm-4 id=suspect_options_div>
+        <fieldset id=suspect_options>
+          <ul style="list-style-type:none">
+          {% for suspect_card in suspect_list %}
+            <li>
+              <input type=radio value={{suspect_card.name}} name=suspect_options> {{suspect_card.text}}</br>
+            </li>
+          {% endfor %}
+          </ul>
+        </fieldset>
+      </div>
+      <div class=col-sm-4 id=weapon_options_div>
+        <fieldset id=weapon_options>
+          <ul style="list-style-type:none">
+          {% for weapon_card in weapon_list%}
+            <li>
+              <input type=radio value={{weapon_card.name}} name=weapon_options> {{weapon_card.text}}</br>
+            </li>
+          {% endfor %}
+          </ul>
+        </fieldset>
+      </div>
+      <div class=col-sm-4 id=room_options_div>
+        <fieldset id=room_options>
+          <ul style="list-style-type:none">
+          {% for room_card in room_list%}
+            <li>
+              <input type=radio value={{room_card.name}} name=room_options> {{room_card.text}}</br>
+            </li>
+          {% endfor %}
+          </ul>
+        </fieldset>
+      </div>
+    </div>
+    <input type="submit" value="Accuse">
+  </form>
+  <button id=back>Back</button>
+</div>

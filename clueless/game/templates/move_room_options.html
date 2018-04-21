@@ -1,8 +1,8 @@
 <div class=container id=room_move_options>
   <ul style="list-style-type:none">
-    {% for room in valid_rooms %}
+    {% for room in valid_rooms%}
       <li>
-        <button id={{room.id}}>{{room.text}}</button>
+        <button {% if room.id != 'back' %} class=room-select {% endif %} id={{room.id}}>{{room.text}}</button>
       </li>
     {% endfor %}
   </ul>

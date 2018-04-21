@@ -17,11 +17,16 @@
               success: function(response, status, xhr){
                 var ct = xhr.getResponseHeader("content-type") || "";
                 if (ct.indexOf('html') > -1) {
-                  console.log("Updated");
                   $('#player_options').html(response);
                 }
                 if (ct.indexOf('json') > -1) {
-                  alert("no change");
+                  if(response['winner'] == null){
+                    alert("The game has ended and nobody has won! You will be redirected to the home page after closing this window.")
+                    window.location.href = "{% url 'game:home' %}"
+                  }else{
+                    alert("The game has ended and " + response['winner'] + " has won! You will be redirected to the home page after closing this window.")
+                    window.location.href = "{% url 'game:home' %}"
+                  }
                 }
               }
             });
@@ -58,6 +63,30 @@
               }
             });
           });
+
+          $(document).on("click", ".room-select", function(event) {
+            $.ajax({
+              type: "get",
+              url: "{% url 'game:move_to_room' %}",
+              data: {location: $(this).attr('id')},
+              method: "GET",
+              success: function(response, status, xhr){
+                //$('#player_options').html(response);
+              }
+            });
+          });
+
+          $(document).on("click", "#select-accusation-cards", function(event) {
+            $.ajax({
+              type: "get",
+              url: "{% url 'game:select_accusation_cards' %}",
+              method: "GET",
+              success: function(response, status, xhr){
+                $('#player_options').html(response);
+              }
+            });
+          });
+
       });
       {% endblock %}
   </head>

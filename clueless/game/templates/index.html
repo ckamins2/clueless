@@ -14,7 +14,6 @@
               url: "{% url 'game:update_home_page' %}",
               method: "GET",
               success: function(data){
-                console.log(data);
                 if(data.game_state == 2)
                 {
                   window.location.href = "{% url 'game:start_game' game_pk %}";
