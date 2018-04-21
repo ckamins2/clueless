@@ -1,0 +1,10 @@
+body {
+    font: small 'Lucida Grande', Verdana, Arial, sans-serif;
+	/*add image as stretched background*/
+	/*background-image: "{% static 'images/base.jpg' %}";*/
+	background-image: url("/static/images/base.jpg");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-position: right top;
+	background-attachment: fixed;
+}
