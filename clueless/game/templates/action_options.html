@@ -1,4 +1,7 @@
 <div class=container id=active_player_options>
+  {% if message %}
+    <h5>{{message}}</h5>
+  {% endif %}
   {% if eliminated %}
     <h5>Sorry, you have been eliminated!</h5>
   {% endif %}

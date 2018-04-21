@@ -17,3 +17,5 @@ MAKING_ACCUSATION = 6
 GET_VALID_MOVES = 'get-valid-moves'
 SELECT_ACCUSATION_CARDS = 'select-accusation-cards'
 MAKE_ACCUSATION = 'make-accusation'
+SELECT_SUGGESTION_CARDS = 'select-suggestion-cards'
+MAKE_SUGGESTION = 'make-suggestion'

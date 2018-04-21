@@ -1,0 +1,9 @@
+body {
+  font: small 'Lucida Grande', Verdana, Arial, sans-serif;
+	/*add image as stretched background*/
+	background-image: url("/static/images/Clue-Logo-1.jpg");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-position: right top;
+	background-attachment: fixed;
+}

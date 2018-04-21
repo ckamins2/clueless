@@ -1,0 +1,28 @@
+<div class=container id=refute_suggestion_options>
+  {% if message %}
+    <h5>{{message}}</h5>
+  {% endif %}
+  {% if cards_to_refute %}
+    <form id=suggestion_form action="{% url 'game:refute_suggestion' %}" method="post">
+      {% csrf_token %}
+      <div class=container>
+        <div class=col-sm-4 id=refute_options_div>
+          <fieldset id=refute_option>
+          <ul style="list-style-type:none">
+          {% for card in cards_to_refute %}
+            <li>
+            <input type=radio value={{card.name}} name=refute_option> {{card.text}}</br>
+            </li>
+          {% endfor %}
+          </ul>
+          </fieldset>
+        </div>
+      </div>
+      <input type="submit" value="Refute suggestion">
+    </form>
+      <div id=no-update></div>
+    {% else %}
+      <button id='pass-suggestion'>Pass</button>
+    {% endif %}
+  </ul>
+</div>
