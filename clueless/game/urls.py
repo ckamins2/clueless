@@ -14,9 +14,12 @@ urlpatterns = [
     url(r'^update_player_options/', views.update_player_options, name='update_player_options'),
     url(r'^turn_pass/', views.pass_turn, name='pass_turn'),
     url(r'^back/', views.back_to_options, name='back'),
-    url(r'^move_charcter/', views.move_character, name='move_character'),
     url(r'^get_valid_moves/', views.get_valid_moves, name='get_valid_moves'),
     url(r'^move_to_room/', views.move_to_room, name='move_to_room'),
+    url(r'^select_suggestion_cards', views.select_suggestion_cards, name='select_suggestion_cards'),
+    url(r'^make_suggestion', views.make_suggestion, name='make_suggestion'),
+    url(r'^pass_suggestion', views.pass_suggestion, name='pass_suggestion'),
+    url(r'^refute_suggestion', views.refute_suggestion, name='refute_suggestion'),
     url(r'^select_accusation_cards', views.select_accusation_cards, name='select_accusation_cards'),
     url(r'^make_accusation', views.make_accusation, name='make_accusation'),
 ]

@@ -21,6 +21,8 @@ class Game(models.Model):
 
     winner = models.ForeignKey('Player', related_name='winner', null=True)
 
+    active_suggestion = models.ForeignKey('Suggestion', related_name='active_suggestion', null=True)
+
     @classmethod
     def create(cls, game_owner):
         game = cls()
@@ -47,7 +49,6 @@ class Game(models.Model):
             return None
 
     def get_characters(self):
-        print self.characters.all()
         return self.characters.all()
 
     def get_cards(self):
@@ -60,9 +61,9 @@ class Game(models.Model):
         col_mustard = Character.create('Colonel Mustard')
         miss_scarlet = Character.create('Miss Scarlet')
         prof_plum = Character.create('Professor Plum')
-        mr_green = Character.create('Mr. Green')
-        mrs_white = Character.create('Mrs. White')
-        mrs_peacock = Character.create('Mrs. Peacock')
+        mr_green = Character.create('Mr Green')
+        mrs_white = Character.create('Mrs White')
+        mrs_peacock = Character.create('Mrs Peacock')
 
         col_mustard.save()
         miss_scarlet.save()
@@ -237,10 +238,8 @@ class Game(models.Model):
             print player
             print player.hand.all()
 
-    def pass_turn(self, curr_player):
+    def get_next_player(self, curr_player):
         player_list = list(self.players.all())
-        print player_list
-        print len(player_list)
 
         curr_player_idx = 0
 
@@ -250,8 +249,17 @@ class Game(models.Model):
 
         next_player = player_list[curr_player_idx+1 if curr_player_idx != len(player_list) - 1 else 0]
 
+        return next_player
+
+    def pass_turn(self, curr_player):
+
+        next_player = self.get_next_player(curr_player)
+
         curr_player.make_not_active_player()
         # Just set this to default action
+        curr_player.reset_moved_by_suggestion()
+        curr_player.reset_can_move()
+        curr_player.reset_can_suggest()
         curr_player.set_turn_state(SELECTING_ACTION)
 
         next_player.make_active_player()
@@ -277,9 +285,9 @@ class Game(models.Model):
         col_mustard = characters.get(name='Colonel Mustard')
         miss_scarlet = characters.get(name='Miss Scarlet')
         prof_plum = characters.get(name='Professor Plum')
-        mr_green = characters.get(name='Mr. Green')
-        mrs_white = characters.get(name='Mrs. White')
-        mrs_peacock = characters.get(name='Mrs. Peacock')
+        mr_green = characters.get(name='Mr Green')
+        mrs_white = characters.get(name='Mrs White')
+        mrs_peacock = characters.get(name='Mrs Peacock')
 
         col_mustard.curr_location = mustard_start
         mustard_start.characters.add(col_mustard)
@@ -334,6 +342,52 @@ class Game(models.Model):
 
         return True
 
+    def get_active_player(self):
+        for player in self.players.all():
+            if player.is_active:
+                return player
+        return None
+
+    def set_active_suggestion(self, suggestion):
+        self.active_suggestion = suggestion
+        self.save()
+
+    def reset_active_suggestion(self):
+        self.active_suggestion = None
+        self.save()
+
+    def pass_suggestion(self, curr_active_player):
+
+        print "***** PASSING SUGGESTION *****"
+        next_player = self.get_next_player(curr_active_player)
+
+        curr_active_player.make_not_active_player()
+
+        print str(curr_active_player != self.active_suggestion.player)
+        if(curr_active_player != self.active_suggestion.player):
+            curr_active_player.set_turn_state(SELECTING_ACTION)
+
+        print "Next player: " + str(next_player)
+
+        print "Player after next player: " + str(self.get_next_player(next_player))
+
+        print "Is next player suggestor: "  + str(next_player == self.active_suggestion.player)
+
+        next_player.make_active_player()
+
+        print self.active_suggestion
+
+        if next_player == self.active_suggestion.player:
+            print "Made it all the away around"
+            self.reset_active_suggestion()
+            next_player.set_turn_state(SELECTING_ACTION)
+            return
+
+        next_player.set_turn_state(REFUTING_SUGGESTION)
+
+    def get_location(self, name):
+        return self.game_map.get_location(name)
+
 
 class Player(models.Model):
     username = models.CharField(max_length=255, blank=True)
@@ -344,6 +398,7 @@ class Player(models.Model):
     can_move = models.BooleanField(default=True)
     can_suggest = models.BooleanField(default=True)
     eliminated = models.BooleanField(default=False)
+    moved_by_suggestion = models.BooleanField(default=False)
 
     @classmethod
     def create(cls, username):
@@ -362,7 +417,11 @@ class Player(models.Model):
         return self.hand.all()
 
     def get_character(self):
-        return self.character.get()
+        try:
+            game = Game.objects.filter(players__in=[self]).get()
+            return game.get_characters().get(player=self)
+        except Game.DoesNotExist:
+            return 0
 
     def check_current_game_state(self):
         try:
@@ -401,6 +460,14 @@ class Player(models.Model):
         self.eliminated = True
         self.save()
 
+    def set_moved_by_suggestion(self):
+        self.moved_by_suggestion = True
+        self.save()
+
+    def reset_moved_by_suggestion(self):
+        self.moved_by_suggestion = False
+        self.save()
+
     def is_eliminated(self):
         return self.eliminated
 
@@ -416,6 +483,14 @@ class Player(models.Model):
         print character
         character.move_to_room(target_location)
 
+    def reset_can_suggest(self):
+        self.can_suggest = True
+        self.save()
+
+    def has_guessed(self):
+        self.can_suggest = False
+        self.save()
+
     def reset(self):
         for card in self.hand.all():
             self.hand.remove(card)
@@ -427,8 +502,8 @@ class Player(models.Model):
         self.is_active = False
         self.save()
 
-
-from abc import ABCMeta, abstractmethod
+    def can_make_suggestion(self):
+        return ((not self.can_move and self.get_character().get_location().is_room()) or self.moved_by_suggestion) and self.can_suggest
 
 class Location(models.Model):
     name = models.CharField(max_length=255, blank=True)
@@ -472,6 +547,8 @@ class Location(models.Model):
         self.characters.add(character)
         self.save()
 
+    def is_room(self):
+        return self.name in ['Study', 'Hall', 'Lounge', 'Library', 'Billiard Room', 'Dining Room', 'Conservatory', 'Ballroom', 'Kitchen']
 
 class Room(Location):
     @classmethod
@@ -516,6 +593,9 @@ class Character(models.Model):
         self.save()
 
         print self.curr_location
+
+    def get_player(self):
+        return self.player
 
 
 class Card(models.Model):
@@ -727,6 +807,7 @@ class Guess(models.Model):
     weapon = models.ForeignKey('Card', related_name='weapon')
     crime_scene = models.ForeignKey('Card', related_name='crime_scene')
 
+
     def __str__(self):
         return self.suspect.name + ":" + self.weapon.name + ":" + self.crime_scene.name
 
@@ -741,14 +822,24 @@ class Guess(models.Model):
 
 
 class Suggestion(Guess):
+    refuting_card = models.ForeignKey('Card', related_name='evidence', null=True)
+    refuting_player = models.ForeignKey('Player', related_name='refuting_player', null=True)
     @classmethod
     def create(cls, player, suspect_name, weapon_name, room_name):
       game = player.get_current_game()
       suggestion = cls(game=game, player=player, suspect=game.get_card(suspect_name.replace('-', ' ').title()),
             weapon=game.get_card(weapon_name.replace('-', ' ').title()),
             crime_scene=game.get_card(room_name.replace('-', ' ').title()))
-      suggetion.save()
+      suggestion.save()
       return suggestion
+
+    def set_refuting_card(self, card):
+         self.refuting_card = card
+         self.save()
+
+    def set_refuting_player(self, player):
+        self.refuting_player = player
+        self.save()
 
 class Accusation(Guess):
     @classmethod
