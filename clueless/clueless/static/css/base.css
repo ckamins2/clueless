@@ -1,20 +1,12 @@
 body {
-<<<<<<< HEAD
     font: small 'Lucida Grande', Verdana, Arial, sans-serif;
 	/*add image as stretched background*/
 	/*background-image: "{% static 'images/base.jpg' %}";*/
 	background-image: url("/static/images/base.jpg");
-=======
-  font: small 'Lucida Grande', Verdana, Arial, sans-serif;
-	/*add image as stretched background*/
-	background-image: url("/static/images/Clue-Logo-1.jpg");
->>>>>>> c67f5a77ac64de3aaa0d13bccf995ad06c664dda
 	background-size: 100% 100%;
-	background-repeat: no-repeat;
 	background-position: right top;
+	background-repeat: no-repeat;
 	background-attachment: fixed;
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> c67f5a77ac64de3aaa0d13bccf995ad06c664dda
+
+
