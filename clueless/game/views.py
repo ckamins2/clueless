@@ -17,9 +17,9 @@ from game import *
 class HomePageView(LoginRequiredMixin, TemplateView):
     def get(self, request, **kwargs):
         all_games = Game.objects.all()
-        player = Player.objects.filter(username=request.user.username)
+        player = Player.objects.filter(username=request.user.username).get()
         is_owner = len(all_games.filter(game_owner=player)) > 0
-        in_game = len(all_games.filter(players__in=player)) > 0
+        in_game = len(all_games.filter(players__in=[player])) > 0
         game_pk = None
         print is_owner
         print in_game
@@ -27,8 +27,8 @@ class HomePageView(LoginRequiredMixin, TemplateView):
         if is_owner:
             game_pk = all_games.filter(game_owner=player).order_by('-id')[:1].get().id
         else:
-            game_pk = player.get().get_current_game().id if player.get().get_current_game() != None else 0
-        return render(request, 'index.html', {'in_game': in_game, 'is_owner': is_owner, 'game_pk': game_pk})
+            game_pk = player.get_current_game().id if player.get_current_game() != None else 0
+        return render(request, 'index.html', {'in_game': in_game, 'is_owner': is_owner, 'game_pk': game_pk, 'player_count': len(player.get_current_game().players.all()) if player.get_current_game() != None else False})
 
 @login_required
 def create_game(request):
@@ -68,8 +68,12 @@ def start_game(request, game_pk):
 
 @login_required
 def join_game(request):
-    games = Game.objects.filter(game_state=1)
-    print games
+    game_list = Game.objects.filter(game_state=1)
+
+    games = []
+
+    for game in game_list:
+        games.append({'id': game.id, 'player_count': len(game.players.all())})
 
     return render(request, "join_game.html", {'games': games})
 
@@ -104,7 +108,7 @@ def get_available_characters(request, game_pk):
 def update_home_page(request):
     player = Player.objects.filter(username=request.user.username).get()
     game = player.get_current_game()
-    data_to_send = {'game_state': player.check_current_game_state(), 'game_id': game.id if game != None else 0}
+    data_to_send = {'game_state': player.check_current_game_state(), 'game_id': game.id if game != None else 0, 'player_count': len(player.get_current_game().players.all()) if player.get_current_game() != None else False}
     data = json.dumps(data_to_send)
     return HttpResponse(data, content_type='application/json')
 
