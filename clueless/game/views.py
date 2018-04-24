@@ -149,7 +149,8 @@ def update_player_options(request):
             if not player.is_eliminated():
                 options.append({'id': SELECT_ACCUSATION_CARDS, 'text': 'Make accusation'})
 
-            if player.is_eliminated() or (not player.can_move or len(player.get_valid_moves()) == 0) or not player.can_suggest:
+            print player.can_make_suggestion()
+            if player.is_eliminated() or len(player.get_valid_moves()) == 0 or not player.can_make_suggestion():
                 options.append({'id': 'pass-turn', 'text': 'Pass turn'})
 
             # Set up message to send back
@@ -394,3 +395,28 @@ def make_accusation(request):
         player.set_turn_state(SELECTING_ACTION)
 
         return redirect('game:start_game', game_pk=player.get_current_game().id)
+
+@login_required
+def update_map(request):
+    player = Player.objects.filter(username=request.user.username).get()
+    game = player.get_current_game()
+
+    characters = game.get_characters()
+
+    all_data = []
+
+    character_locs = {}
+
+    for character in characters:
+        if not character.get_location().name.replace(' ', '-').lower() in character_locs:
+            character_locs[character.get_location().name.replace(' ', '-').lower()] = [character.name.replace(' ', '-').lower()]
+        else:
+            print "Append"
+            character_locs[character.get_location().name.replace(' ', '-').lower()].append(character.name.replace(' ', '-').lower())
+
+    all_data.append(render(request, "game_board.html").content)
+    all_data.append(character_locs)
+
+    data = json.dumps(all_data)
+
+    return HttpResponse(data, content_type='application/json')

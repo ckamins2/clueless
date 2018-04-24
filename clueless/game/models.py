@@ -276,11 +276,11 @@ class Game(models.Model):
         characters = self.characters.all()
 
         scarlet_start = locations.get(name='scarlet-start')
-        plum_start = locations.get(name='plum_start')
-        mustard_start = locations.get(name='mustard_start')
-        peacock_start = locations.get(name='peacock_start')
-        green_start = locations.get(name='green_start')
-        white_start = locations.get(name='white_start')
+        plum_start = locations.get(name='plum-start')
+        mustard_start = locations.get(name='mustard-start')
+        peacock_start = locations.get(name='peacock-start')
+        green_start = locations.get(name='green-start')
+        white_start = locations.get(name='white-start')
 
         col_mustard = characters.get(name='Colonel Mustard')
         miss_scarlet = characters.get(name='Miss Scarlet')
@@ -500,6 +500,7 @@ class Player(models.Model):
         self.can_suggest = True
         self.eliminated = False
         self.is_active = False
+        self.moved_by_suggestion = False
         self.save()
 
     def can_make_suggestion(self):
@@ -655,11 +656,11 @@ class Map(models.Model):
         # TODO: Add characters to these starting rooms
 
         scarlet_start = StartRoom.create('scarlet-start')
-        plum_start = StartRoom.create('plum_start')
-        mustard_start = StartRoom.create('mustard_start')
-        peacock_start = StartRoom.create('peacock_start')
-        green_start = StartRoom.create('green_start')
-        white_start = StartRoom.create('white_start')
+        plum_start = StartRoom.create('plum-start')
+        mustard_start = StartRoom.create('mustard-start')
+        peacock_start = StartRoom.create('peacock-start')
+        green_start = StartRoom.create('green-start')
+        white_start = StartRoom.create('white-start')
 
         study.save()
         hall.save()

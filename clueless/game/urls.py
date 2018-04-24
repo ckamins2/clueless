@@ -22,4 +22,5 @@ urlpatterns = [
     url(r'^refute_suggestion', views.refute_suggestion, name='refute_suggestion'),
     url(r'^select_accusation_cards', views.select_accusation_cards, name='select_accusation_cards'),
     url(r'^make_accusation', views.make_accusation, name='make_accusation'),
+    url(r'^update_map', views.update_map, name='update_map'),
 ]

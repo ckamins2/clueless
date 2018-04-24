@@ -1,0 +1,130 @@
+#game-board {
+  height: 100%;
+  width: 100%;
+}
+
+.container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.col-sm-2 {
+  width: 100px;
+}
+
+.room, .hallway, .empty {
+  height: 100px;
+}
+
+.col-sm-1 {
+  width: 50px;
+}
+
+.start {
+  height: 50px;
+  background-color: grey;
+  border-style: solid;
+  border-width: thin;
+}
+
+.room {
+  position: relative;
+  background-color: grey;
+  border-style: solid;
+  border-width: thin;
+}
+
+.hallway {
+  position: relative;
+}
+
+.hallway-hor {
+  position: absolute;
+  left: 0;
+  top: 25%;
+  height: 50%;
+  width: 100%;
+  background-color: grey;
+  border-style: solid;
+  border-width: thin;
+}
+
+.hallway-vert {
+  position: absolute;
+  left: 25%;
+  top: 0%;
+  height: 100%;
+  width: 50%;
+  background-color: grey;
+  border-style: solid;
+  border-width: thin;
+}
+
+.char-loc-1 {
+  position: absolute;
+  left: 0%;
+  top: 0%;
+  height: 50%;
+  width: 33.33%;
+}
+
+.char-loc-2 {
+  position: absolute;
+  left: 33.33%;
+  top: 0%;
+  height: 50%;
+  width: 33.33%;
+}
+
+.char-loc-3 {
+  position: absolute;
+  left: 66.67%;
+  top: 0%;
+  height: 50%;
+  width: 33.33%;
+}
+
+.char-loc-4 {
+  position: absolute;
+  left: 0%;
+  top: 50%;
+  height: 50%;
+  width: 33.33%;
+}
+
+.char-loc-5 {
+  position: absolute;
+  left: 33.33%;
+  top: 50%;
+  height: 50%;
+  width: 33.33%;
+}
+
+.char-loc-6 {
+  position: absolute;
+  left: 66.67%;
+  top: 50%;
+  height: 50%;
+  width: 33.33%;
+}
+
+.char-loc-hall {
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  height: 50%;
+  width: 50%;
+  z-index: 5;
+}
+
+.loc-name {
+  position: absolute;
+  vertical-align: middle;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  z-index: 10;
+}

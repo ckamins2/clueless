@@ -7,7 +7,11 @@
       <title>
         {% block title %}Clueless{% endblock %}
       </title>
+      {% block css %}
+      <link rel="stylesheet" href="/static/css/game_board.css">
+      {% endblock %}
       {% block scripts %}
+
       $(document).ready(function(){
           setInterval(function(){
             if($('#no-update').length){
@@ -34,6 +38,66 @@
                 }
               });
             }
+          }, 1000);
+
+          $.ajax({
+            type: "get",
+            url: "{% url 'game:update_map' %}",
+            method: "GET",
+            success: function(response, status, xhr){
+              var ct = xhr.getResponseHeader("content-type") || "";
+              if (ct.indexOf('html') > -1) {
+                //$('#player_options').html(response);
+              }
+              if (ct.indexOf('json') > -1) {
+                $('#game-board-base').html(response[0]);
+                var locations = response[1];
+                for(var key in locations){
+                  if(key.includes("hallway")){
+                    $('#'+key).find('.char-loc-hall').css('background-image', 'url("/static/images/' + locations[key] + '.jpg")').css('background-size', '100% 100%');
+                  }else if(key.includes("start")){
+                    $('#'+key).css('background-image', 'url("/static/images/' + locations[key] + '.jpg")').css('background-size', '100% 100%');
+                  }else{
+                    var count = 0;
+                    for(var person in locations[key]){
+                      count++;
+                      $('#'+key).find('.char-loc-' + count).css('background-image', 'url("/static/images/' + locations[key][count-1] + '.jpg")').css('background-size', '100% 100%');
+                    }
+                  }
+                }
+              }
+            }
+          });
+
+          setInterval(function(){
+            $.ajax({
+              type: "get",
+              url: "{% url 'game:update_map' %}",
+              method: "GET",
+              success: function(response, status, xhr){
+                var ct = xhr.getResponseHeader("content-type") || "";
+                if (ct.indexOf('html') > -1) {
+                  //$('#player_options').html(response);
+                }
+                if (ct.indexOf('json') > -1) {
+                  $('#game-board-base').html(response[0]);
+                  var locations = response[1];
+                  for(var key in locations){
+                    if(key.includes("hallway")){
+                      $('#'+key).find('.char-loc-hall').css('background-image', 'url("/static/images/' + locations[key] + '.jpg")').css('background-size', '100% 100%');
+                    }else if(key.includes("start")){
+                      $('#'+key).css('background-image', 'url("/static/images/' + locations[key] + '.jpg")').css('background-size', '100% 100%');
+                    }else{
+                      var count = 0;
+                      for(var person in locations[key]){
+                        count++;
+                        $('#'+key).find('.char-loc-' + count).css('background-image', 'url("/static/images/' + locations[key][count-1] + '.jpg")').css('background-size', '100% 100%');
+                      }
+                    }
+                  }
+                }
+              }
+            });
           }, 1000);
 
           $(document).on("click", "#pass-turn", function(event) {
@@ -118,13 +182,26 @@
   </head>
 <body>
   {% block content %}
-      {% include 'game_board.html' %}
-      {% include 'player_hand.html' %}
-      <div class=container>
+      <div container id=game-space>
+        <div class=row>
+            <div class=col-sm-5>
+              {% include 'player_hand.html' %}
+              <div class=container>
+                <h2>Player Actions</h2>
+                <div id=player_options>
+                </div>
+              </div>
+            </div>
+            <div class=col-sm-7 id=game-board-base>
+              {% include 'game_board.html' %}
+            </div>
+        </div>
+      </div>
+      <!-- <div class=container>
         <h2>Player Actions</h2>
         <div id=player_options>
         </div>
-      </div>
+      </div> -->
   {% endblock %}
 </body>
 </html>
