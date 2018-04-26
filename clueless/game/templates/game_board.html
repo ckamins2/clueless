@@ -1,88 +1,209 @@
 <div class=container id=game-board>
-  <h2>Game Board</h2>
+  <div class=row id='top-top'>
+    <div class=col-sm-1></div>
+    <div class=col-sm-1></div>
+    <div class=col-sm-1></div>
+    <div class=col-sm-1></div>
+    <div class=col-sm-1></div>
+    <div class=col-sm-1></div>
+    <div class=col-sm-1></div>
+    <div class="col-sm-1 start" id='scarlet-start'>
+    </div>
+  </div>
   <div class=row id=top-row>
+    <div class=col-sm-1></div>
     <div class="col-sm-2 room" id=study>
-      <p>Study</p>
+      <p class=loc-name>Study</p>
+      <div class='char-loc char-loc-1'></div>
+      <div class='char-loc char-loc-2'></div>
+      <div class='char-loc char-loc-3'></div>
+      <div class='char-loc char-loc-4'></div>
+      <div class='char-loc char-loc-5'></div>
+      <div class='char-loc char-loc-6'></div>
     </div>
     <div class="col-sm-2 hallway" id=study-to-hall-hallway>
-      <p>S-H Hallway</p>
+      <div class="hallway-hor">
+      <p class=loc-name>S-H Hallway</p>
+      </div>
+      <div class='char-loc-hall'></div>
     </div>
     <div class="col-sm-2 room" id=hall>
-      <p>Hall</p>
+      <p class=loc-name>Hall</p>
+      <div class='char-loc char-loc-1'></div>
+      <div class='char-loc char-loc-2'></div>
+      <div class='char-loc char-loc-3'></div>
+      <div class='char-loc char-loc-4'></div>
+      <div class='char-loc char-loc-5'></div>
+      <div class='char-loc char-loc-6'></div>
     </div>
     <div class="col-sm-2 hallway" id=hall-to-lounge-hallway>
-      <p>H-L Hallway</p>
+      <div class="hallway-hor">
+      <p class=loc-name>H-L Hallway</p>
+      </div>
+      <div class='char-loc-hall'></div>
     </div>
     <div class="col-sm-2 room" id=lounge>
-      <p>Lounge</p>
+      <p class=loc-name>Lounge</p>
+      <div class='char-loc char-loc-1'></div>
+      <div class='char-loc char-loc-2'></div>
+      <div class='char-loc char-loc-3'></div>
+      <div class='char-loc char-loc-4'></div>
+      <div class='char-loc char-loc-5'></div>
+      <div class='char-loc char-loc-6'></div>
     </div>
   </div>
   <div class=row id=mid-top-row>
+    <div class="col-sm-1 start" id='plum-start'>
+    </div>
     <div class="col-sm-2 hallway" id=study-to-library-hallway>
-      <p>S-L Hallway</p>
+      <div class="hallway-vert">
+        <p class=loc-name>S-L Hallway</p>
+      </div>
+      <div class='char-loc-hall'></div>
     </div>
     <div class="col-sm-2 empty">
       <p></p>
     </div>
     <div class="col-sm-2 hallway" id=hall-to-billiard-room-hallway>
-      <p>Hall-BR Hallway</p>
+      <div class="hallway-vert">
+        <p class=loc-name>Hall-BR Hallway</p>
+      </div>
+      <div class='char-loc-hall'></div>
     </div>
     <div class="col-sm-2 empty">
       <p></p>
     </div>
     <div class="col-sm-2 hallway" id=lounge-to-dining-room-hallway>
-      <p>L-DR Hallway</p>
+      <div class="hallway-vert">
+        <p class=loc-name>L-DR Hallway</p>
+      </div>
+      <div class='char-loc-hall'></div>
+    </div>
+    <div class="col-sm-1 start" id='mustard-start'>
     </div>
   </div>
   <div class=row id=mid-row>
+    <div class=col-sm-1></div>
     <div class="col-sm-2 room" id=library>
-      <p>Library</p>
+      <p class=loc-name>Library</p>
+      <div class='char-loc char-loc-1'></div>
+      <div class='char-loc char-loc-2'></div>
+      <div class='char-loc char-loc-3'></div>
+      <div class='char-loc char-loc-4'></div>
+      <div class='char-loc char-loc-5'></div>
+      <div class='char-loc char-loc-6'></div>
     </div>
     <div class="col-sm-2 hallway" id=library-to-billiard-room-hallway>
-      <p>L-BR Hallway</p>
+      <div class="hallway-hor">
+      <p class=loc-name>L-BR Hallway</p>
+      </div>
+      <div class='char-loc-hall'></div>
     </div>
     <div class="col-sm-2 room" id=billiard-room>
-      <p>Billiard Room</p>
+      <p class=loc-name>Billiard Room</p>
+      <div class='char-loc char-loc-1'></div>
+      <div class='char-loc char-loc-2'></div>
+      <div class='char-loc char-loc-3'></div>
+      <div class='char-loc char-loc-4'></div>
+      <div class='char-loc char-loc-5'></div>
+      <div class='char-loc char-loc-6'></div>
     </div>
     <div class="col-sm-2 hallway" id=billiard-room-to-dining-room-hallway>
-      <p>BR-DR Hallway</p>
+      <div class="hallway-hor">
+      <p class=loc-name>BR-DR Hallway</p>
+      </div>
+      <div class='char-loc-hall'></div>
     </div>
     <div class="col-sm-2 room" id=dining-room>
-      <p>Dining Room</p>
+      <p class=loc-name>Dining Room</p>
+      <div class='char-loc char-loc-1'></div>
+      <div class='char-loc char-loc-2'></div>
+      <div class='char-loc char-loc-3'></div>
+      <div class='char-loc char-loc-4'></div>
+      <div class='char-loc char-loc-5'></div>
+      <div class='char-loc char-loc-6'></div>
     </div>
   </div>
   <div class=row id=mid-bot-row>
+    <div class="col-sm-1 start" id='peacock-start'>
+    </div>
     <div class="col-sm-2 hallway" id=library-to-conservatory-hallway>
-      <p>L-C Hallway</p>
+      <div class="hallway-vert">
+        <p class=loc-name>L-C Hallway</p>
+      </div>
+      <div class='char-loc-hall'></div>
     </div>
     <div class="col-sm-2 empty">
       <p></p>
     </div>
     <div class="col-sm-2 hallway" id=billiard-room-to-ballroom-hallway>
-      <p>BR-B Hallway</p>
+      <div class="hallway-vert">
+        <p class=loc-name>BR-B Hallway</p>
+      </div>
+      <div class='char-loc-hall'></div>
     </div>
     <div class="col-sm-2 empty">
       <p></p>
     </div>
     <div class="col-sm-2 hallway" id=dining-room-to-kitchen-hallway>
-      <p>DR-K Hallway</p>
+      <div class="hallway-vert">
+        <p class=loc-name>DR-K Hallway</p>
+      </div>
+      <div class='char-loc-hall'></div>
     </div>
   </div>
-  <div class=row id=mid-row>
+  <div class=row id=bot-row>
+    <div class=col-sm-1></div>
     <div class="col-sm-2 room" id=conservatory>
-      <p>Conservatory</p>
+      <p class=loc-name>Conservatory</p>
+      <div class='char-loc char-loc-1'></div>
+      <div class='char-loc char-loc-2'></div>
+      <div class='char-loc char-loc-3'></div>
+      <div class='char-loc char-loc-4'></div>
+      <div class='char-loc char-loc-5'></div>
+      <div class='char-loc char-loc-6'></div>
     </div>
     <div class="col-sm-2 hallway" id=conservatory-to-ballroom-hallway>
-      C-B Hallway
+      <div class="hallway-hor">
+        <p class=loc-name>C-B Hallway</p>
+      </div>
+      <div class='char-loc-hall'></div>
     </div>
     <div class="col-sm-2 room" id=ballroom>
-      <p>Ballroom</p>
+      <p class=loc-name>Ballroom</p>
+      <div class='char-loc char-loc-1'></div>
+      <div class='char-loc char-loc-2'></div>
+      <div class='char-loc char-loc-3'></div>
+      <div class='char-loc char-loc-4'></div>
+      <div class='char-loc char-loc-5'></div>
+      <div class='char-loc char-loc-6'></div>
     </div>
     <div class="col-sm-2 hallway" id=ballroom-to-kitchen-hallway>
-      <p>B-K Hallway</p>
+      <div class="hallway-hor">
+        <p class=loc-name>B-K Hallway</p>
+      </div>
+      <div class='char-loc-hall'></div>
     </div>
     <div class="col-sm-2 room" id=kitchen>
-      <p>Kitchen</p>
+      <p class=loc-name>Kitchen</p>
+      <div class='char-loc char-loc-1'></div>
+      <div class='char-loc char-loc-2'></div>
+      <div class='char-loc char-loc-3'></div>
+      <div class='char-loc char-loc-4'></div>
+      <div class='char-loc char-loc-5'></div>
+      <div class='char-loc char-loc-6'></div>
+    </div>
+  </div>
+  <div class=row id='bot-bot'>
+    <div class=col-sm-1></div>
+    <div class=col-sm-1></div>
+    <div class=col-sm-1></div>
+    <div class="col-sm-1 start" id='green-start'>
+    </div>
+    <div class=col-sm-1></div>
+    <div class=col-sm-1></div>
+    <div class=col-sm-1></div>
+    <div class="col-sm-1 start" id='white-start'>
     </div>
   </div>
 </div>

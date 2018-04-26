@@ -16,7 +16,7 @@ $(document).ready(function(){
 {% block content %}
 
 {% for game in games %}
-  <p id="game_{{game.id}}">{{game.id}}</p>
+  <p id="game_{{game.id}}">{{game.id}}: {{game.player_count}} player(s)</p>
 {% endfor %}
 
 <div id="available_characters">
@@ -24,5 +24,7 @@ $(document).ready(function(){
   {% include 'available_characters.html' %}
   {% endif %}
 </div>
+
+<p><a href="/">Back</a></p>
 
 {% endblock content %}
