@@ -1,3 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		body{
+			background-color: maroon;
+		}
+		img {
+			border-radius: 8px;
+		}
+	</style>
+</head>
+
+<h1 align="center"><font color="white">Character Selection</font></h1>
+
 <form action="{% url 'game:join_target_game' game.id %}" method="post" id="character_form">
   {% csrf_token %}
   <select form="character_form" name="character">
@@ -8,3 +23,14 @@
 <input type="submit" value="Join game"/>
 
 <button
+
+<body>
+	<img src="images/miss_scarlet.jpg" alt="Scarlet" width="200" height="200">
+	<img src="images/mrs_white.jpg" alt="White" width="200" height="200">
+	<img src="images/mrs_peacock.jpg" alt="Peacock" width="200" height="200">
+	<img src="images/professor_plum.jpg" alt="Plum" width="200" height="200">
+	<img src="images/mr_green.jpg" alt="Green" width="200" height="200">
+	<img src="images/colonel_mustard.jpg" alt="Mustard" width="200" height="200">
+</body>
+
+</html>
