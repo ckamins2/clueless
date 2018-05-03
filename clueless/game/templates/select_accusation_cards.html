@@ -1,6 +1,6 @@
 <div class=container id=accusation_options>
   <form id=accusation_form action="{% url 'game:make_accusation' %}" method="post">
-      {% csrf_token %}
+    {% csrf_token %}
     <div class=container>
       <div class=col-sm-4 id=suspect_options_div>
         <fieldset id=suspect_options>

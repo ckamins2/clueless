@@ -23,4 +23,5 @@ urlpatterns = [
     url(r'^select_accusation_cards', views.select_accusation_cards, name='select_accusation_cards'),
     url(r'^make_accusation', views.make_accusation, name='make_accusation'),
     url(r'^update_map', views.update_map, name='update_map'),
+    url(r'^update_notebook', views.update_notebook, name='update_notebook'),
 ]

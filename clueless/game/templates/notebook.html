@@ -1,0 +1,104 @@
+<div class="container" id="notebook">
+  <h2>Notebook</h2>
+  <form id="notebook-form" action="{% url 'game:update_notebook' %}" method="post">
+    {% csrf_token %}
+    <div class="container">
+      <div class="col-sm-4" id="suspect_options_div">
+          <ul style="list-style-type:none">
+            <li>
+              <input type="checkbox" value="colonel-mustard" name="suspect_options"> Colonel Mustard<br>
+            </li>
+            <li>
+              <input type="checkbox" value="miss-scarlet" name="suspect_options"> Miss Scarlet<br>
+            </li>
+            <li>
+              <input type="checkbox" value="professor-plum" name="suspect_options"> Professor Plum<br>
+            </li>
+            <li>
+              <input type="checkbox" value="mr-green" name="suspect_options"> Mr Green<br>
+            </li>
+            <li>
+              <input type="checkbox" value="mrs-white" name="suspect_options"> Mrs White<br>
+            </li>
+            <li>
+              <input type="checkbox" value="mrs-peacock" name="suspect_options"> Mrs Peacock<br>
+            </li>
+          </ul>
+      </div>
+      <div class="col-sm-4" id="weapon_options_div">
+        <fieldset id="weapon_options">
+          <ul style="list-style-type:none">
+
+            <li>
+              <input type="checkbox" value="rope" name="weapon_options"> Rope<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="lead-pipe" name="weapon_options"> Lead Pipe<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="knife" name="weapon_options"> Knife<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="wrench" name="weapon_options"> Wrench<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="candlestick" name="weapon_options"> Candlestick<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="revolver" name="weapon_options"> Revolver<br>
+            </li>
+
+          </ul>
+        </fieldset>
+      </div>
+      <div class="col-sm-4" id="room_options_div">
+        <fieldset id="room_options">
+          <ul style="list-style-type:none">
+
+            <li>
+              <input type="checkbox" value="study" name="room_options"> Study<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="hall" name="room_options"> Hall<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="lounge" name="room_options"> Lounge<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="library" name="room_options"> Library<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="billiard-room" name="room_options"> Billiard Room<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="dining-room" name="room_options"> Dining Room<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="conservatory" name="room_options"> Conservatory<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="ballroom" name="room_options"> Ballroom<br>
+            </li>
+
+            <li>
+              <input type="checkbox" value="kitchen" name="room_options"> Kitchen<br>
+            </li>
+
+          </ul>
+        </fieldset>
+      </div>
+    </div>
+  </form>
+</div>

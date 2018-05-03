@@ -21,8 +21,6 @@ class HomePageView(LoginRequiredMixin, TemplateView):
         is_owner = len(all_games.filter(game_owner=player)) > 0
         in_game = len(all_games.filter(players__in=[player])) > 0
         game_pk = None
-        print is_owner
-        print in_game
 
         if is_owner:
             game_pk = all_games.filter(game_owner=player).order_by('-id')[:1].get().id
@@ -39,7 +37,6 @@ def create_game(request):
 def gen_new_game(request):
     if request.method == 'POST':
         data = request.POST
-        print data.get('character_id')
         player = Player.objects.filter(username=request.user.username).get()
         game = Game.create(player)
         character = game.characters.filter(name=data.get('character_name'))
@@ -50,7 +47,6 @@ def gen_new_game(request):
 
         game.players.add(player)
         game.save()
-        print character
 
     return redirect('game:home')
 
@@ -64,7 +60,7 @@ def start_game(request, game_pk):
 
     player_hand = player.get_hand()
 
-    return render(request, "game.html", {'player_id': player.id, 'player_hand': player_hand})
+    return render(request, "game.html", {'player_name': player.username, 'player_character': player.get_character(), 'player_hand': player_hand})
 
 @login_required
 def join_game(request):
@@ -93,8 +89,6 @@ def join_target_game(request, game_pk):
         game.players.add(player)
 
         game.save()
-
-        print character
 
     return redirect('game:home')
 
@@ -142,32 +136,28 @@ def update_player_options(request):
             if player.can_move and len(player.get_valid_moves()) > 0 and not player.is_eliminated() and player.can_suggest:
                 options.append({'id': GET_VALID_MOVES, 'text': 'Move character'})
 
-            if player.can_make_suggestion():
+            if player.can_make_suggestion() and not player.is_eliminated():
                 options.append({'id': SELECT_SUGGESTION_CARDS, 'text': 'Make suggestion'})
 
             # Player can always make accusation (on their turn)
             if not player.is_eliminated():
                 options.append({'id': SELECT_ACCUSATION_CARDS, 'text': 'Make accusation'})
 
-            print player.can_make_suggestion()
-            if player.is_eliminated() or len(player.get_valid_moves()) == 0 or not player.can_make_suggestion():
+            if player.is_eliminated() or len(player.get_valid_moves()) == 0 or (not player.can_make_suggestion() and not player.can_move):
                 options.append({'id': 'pass-turn', 'text': 'Pass turn'})
 
             # Set up message to send back
             message = False
+
             if not player.can_suggest and game.active_suggestion is None:
                 message = "No one refuted your suggestion!"
             if not player.can_suggest and game.active_suggestion is not None:
-                message = "Your suggestion was refuted with " + game.active_suggestion.refuting_card.name + " by " + game.active_suggestion.refuting_player.username
+                message = "Your suggestion was refuted with " + game.active_suggestion.refuting_card.name + " by " + game.active_suggestion.refuting_player.username + "."
 
-
-
-            return render(request, "action_options.html", {"message" : message, "valid_options": options, "eliminated": player.is_eliminated()})
+            return render(request, "action_options.html", {"messages" : [message] if message else [], "valid_options": options, "eliminated": player.is_eliminated()})
         elif player.turn_state == WAITING_ON_SUGGESTION:
-            print "Waiting"
-            return render(request, "action_options.html", {"message": "Wating on " + game.get_active_player().username + " for a response."})
+            return render(request, "action_options.html", {"messages": [game.active_suggestion.player.username + " made a suggestion of " + game.active_suggestion.suspect.name + " in the " + game.active_suggestion.crime_scene.name + " with a " + game.active_suggestion.weapon.name + ".", "Waiting on " + game.get_active_player().username + " for a response."]})
         elif player.turn_state == REFUTING_SUGGESTION:
-            print "Refuting suggestion"
             suggestion = game.active_suggestion
             cards_to_refute = [card for card in player.get_hand() if card in [suggestion.get_suspect(), suggestion.get_weapon(), suggestion.get_crime_scene()]]
             cards_list = []
@@ -176,18 +166,27 @@ def update_player_options(request):
 
             message = False
             if len(cards_list) == 0:
-                message = "You have no cards to refute this suggestion"
+                message = "You have no cards to refute this suggestion."
             else:
-                message = "Select a valid card to refute this suggestion"
+                message = "Select a valid card to refute this suggestion."
 
-            return render(request, "refute_suggestion.html", {"message": message, 'cards_to_refute': cards_list})
+            return render(request, "refute_suggestion.html", {"messages": [game.active_suggestion.player.username + " made a suggestion of " + game.active_suggestion.suspect.name + " in the " + game.active_suggestion.crime_scene.name + " with a " + game.active_suggestion.weapon.name + ".", message], 'cards_to_refute': cards_list})
         else:
             return HttpResponse({}, content_type='application/json')
     elif player.turn_state == WAITING_ON_SUGGESTION:
-        print "Waiting"
-        return render(request, "action_options.html", {"message": "Wating on " + game.get_active_player().username + " for a response."})
+        return render(request, "action_options.html", {"messages": ["You made a suggestion of " + game.active_suggestion.suspect.name + " in the " + game.active_suggestion.crime_scene.name + " with a " + game.active_suggestion.weapon.name + ".", "Waiting on " + game.get_active_player().username + " for a response."]})
     else:
-        return render(request, "action_options.html", {"valid_options": [], "eliminated": player.is_eliminated()})
+        message = False
+        if not game.get_active_player().can_suggest and game.active_suggestion is None:
+            message = game.get_active_player().username + " did not have their suggestion refuted."
+        if not game.get_active_player().can_suggest and game.active_suggestion is not None:
+            message = game.active_suggestion.player.username + " had their suggestion refuted by " + game.active_suggestion.refuting_player.username + "."
+        if game.active_suggestion is not None and game.get_active_player().turn_state == WAITING_ON_SUGGESTION:
+            message = game.active_suggestion.player.username + " made a suggestion of " + game.active_suggestion.suspect.name + " in the " + game.active_suggestion.crime_scene.name + " with a " + game.active_suggestion.weapon.name + "."
+            return render(request, "action_options.html", {"messages": [message, "Waiting on " + game.get_active_player().username + " for a response."] if message else [], "eliminated": player.is_eliminated()})
+        else:
+            message = game.get_active_player().username + " is taking their turn."
+        return render(request, "action_options.html", {"messages": [message] if message else [], "eliminated": player.is_eliminated()})
 
 @login_required
 def pass_turn(request):
@@ -287,8 +286,6 @@ def make_suggestion(request):
         game = player.get_current_game()
         suggestion = Suggestion.create(player, data['suspect_options'], data['weapon_options'], data['room_options'])
 
-        print data['suspect_options'].replace('-', ' ').title()
-        print game.get_characters()
         character = game.get_characters().get(name=data['suspect_options'].replace('-', ' ').title())
         location = game.get_location(data['room_options'])
 
@@ -325,8 +322,6 @@ def refute_suggestion(request):
         player = Player.objects.filter(username=request.user.username).get()
         game = player.get_current_game()
         suggestion = game.active_suggestion
-
-        print data['refute_option']
 
         if suggestion.get_suspect().name == data['refute_option'].replace('-', ' ').title():
             suggestion.set_refuting_card(suggestion.get_suspect())
@@ -381,10 +376,7 @@ def make_accusation(request):
 
         correct = game.check_accusation(accusation)
 
-        print correct
-
         if correct:
-            print str(player) + "Wins"
             game.winner = player
             game.set_game_state(GAME_STATE_FINISHED)
         else:
@@ -411,7 +403,6 @@ def update_map(request):
         if not character.get_location().name.replace(' ', '-').lower() in character_locs:
             character_locs[character.get_location().name.replace(' ', '-').lower()] = [character.name.replace(' ', '-').lower()]
         else:
-            print "Append"
             character_locs[character.get_location().name.replace(' ', '-').lower()].append(character.name.replace(' ', '-').lower())
 
     all_data.append(render(request, "game_board.html").content)
@@ -420,3 +411,12 @@ def update_map(request):
     data = json.dumps(all_data)
 
     return HttpResponse(data, content_type='application/json')
+
+def update_notebook(request):
+    player = Player.objects.filter(username=request.user.username).get()
+    game = player.get_current_game()
+    if request.method == 'POST':
+        data = request.POST
+        print data
+
+    return redirect('game:start_game', game_pk=player.get_current_game().id)

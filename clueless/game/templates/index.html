@@ -20,7 +20,7 @@
                 }
                 else if (data.player_count)
                 {
-                  $('#waiting_game').html('<p>Waiting for Start: ' + data.player_count + ' player(s)</p>')
+                  $('#waiting_game').html('<p>Waiting for game ' + game_id + ' start: ' + data.player_count + ' player(s)</p>')
                 }
               }
             });
@@ -32,7 +32,7 @@
   {% block content %}
       {% if in_game %}
       <div id="waiting_game">
-        <p>Waiting for Start{% if player_count %}: {{player_count}} player(s) {% endif %}</p>
+        <p>Waiting for game {{game_pk}} start{% if player_count %}: {{player_count}} player(s) {% endif %}</p>
       </div>
         {% if is_owner %}
         <div id="start_game">

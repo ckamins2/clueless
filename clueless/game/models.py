@@ -358,27 +358,17 @@ class Game(models.Model):
 
     def pass_suggestion(self, curr_active_player):
 
-        print "***** PASSING SUGGESTION *****"
         next_player = self.get_next_player(curr_active_player)
 
         curr_active_player.make_not_active_player()
 
-        print str(curr_active_player != self.active_suggestion.player)
         if(curr_active_player != self.active_suggestion.player):
             curr_active_player.set_turn_state(SELECTING_ACTION)
 
-        print "Next player: " + str(next_player)
-
-        print "Player after next player: " + str(self.get_next_player(next_player))
-
-        print "Is next player suggestor: "  + str(next_player == self.active_suggestion.player)
 
         next_player.make_active_player()
 
-        print self.active_suggestion
-
         if next_player == self.active_suggestion.player:
-            print "Made it all the away around"
             self.reset_active_suggestion()
             next_player.set_turn_state(SELECTING_ACTION)
             return
@@ -399,11 +389,14 @@ class Player(models.Model):
     can_suggest = models.BooleanField(default=True)
     eliminated = models.BooleanField(default=False)
     moved_by_suggestion = models.BooleanField(default=False)
+    notebook = models.ForeignKey('Notebook', null=True)
 
     @classmethod
     def create(cls, username):
         player = cls(username=username)
+        player.notebook = Notebook.create()
         # do something with the book
+        player.save()
         return player
 
     def __str__(self):
@@ -851,3 +844,19 @@ class Accusation(Guess):
             crime_scene=game.get_card(room_name.replace('-', ' ').title()))
       accusation.save()
       return accusation
+
+class Notebook(models.Model):
+    stored_info = models.TextField(null=True)
+
+    def __str__(self):
+        return self.stored_info
+
+    @classmethod
+    def create(cls):
+        notebook = cls()
+        notebook.save()
+        return notebook
+
+    def update(self, data):
+        self.stored_info = data
+        self.save()

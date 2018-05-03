@@ -1,7 +1,7 @@
 <div class=container id=refute_suggestion_options>
-  {% if message %}
+  {% for message in messages %}
     <h5>{{message}}</h5>
-  {% endif %}
+  {% endfor %}
   {% if cards_to_refute %}
     <form id=suggestion_form action="{% url 'game:refute_suggestion' %}" method="post">
       {% csrf_token %}

@@ -12,6 +12,10 @@
       {% endblock %}
       {% block scripts %}
 
+      $.ajaxSetup({data: {
+       csrfmiddlewaretoken: '{{ csrf_token }}'
+     }});
+
       $(document).ready(function(){
           setInterval(function(){
             if($('#no-update').length){
@@ -177,6 +181,32 @@
             });
           });
 
+          setInterval(function(){
+            var formData = [];
+            console.log($('#notebook-form').find("input"));
+            $('#notebook-form').find("input").each(function (index, node) {
+                if(node.checked){
+                  formData.push(node.value);
+                }
+            });
+            console.log(formData);
+            $.ajax({
+              type: "post",
+              url: $('#notebook-form').attr("action"),
+              method: "POST",
+              success: function(response, status, xhr){
+                var ct = xhr.getResponseHeader("content-type") || "";
+                if (ct.indexOf('html') > -1) {
+
+                }
+                if (ct.indexOf('json') > -1) {
+
+
+                }
+              }
+            });
+          }, 1000);
+
       });
       {% endblock %}
   </head>
@@ -184,15 +214,27 @@
   {% block content %}
       <div container id=game-space>
         <div class=row>
-            <div class=col-sm-5>
-              {% include 'player_hand.html' %}
+            <div class=col-sm-6>
+              <div id=player-reminders>
+                <h5>{{player_name}} -- {{player_character}}</h5>
+              </div>
+              <div class=container>
+                <div class=row>
+                  <div class=col-sm-3>
+                    {% include 'player_hand.html' %}
+                  </div>
+                  <div class=col-sm-9>
+                    <!-- {% include 'notebook.html' %} -->
+                  </div>
+                </div>
+              </div>
               <div class=container>
                 <h2>Player Actions</h2>
                 <div id=player_options>
                 </div>
               </div>
             </div>
-            <div class=col-sm-7 id=game-board-base>
+            <div class=col-sm-6 id=game-board-base>
               {% include 'game_board.html' %}
             </div>
         </div>
